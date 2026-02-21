@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Laravel\Socialite\Facades\Socialite;
+use App\Http\Requests\UserCheckCodeRequest;
+use App\Http\Requests\UserLoginRequest;
+use App\Http\Requests\UserRegisterRequest;
+use App\Http\Resources\SanctumResource;
+use App\Http\Helpers\ApiResponse;
+use App\Services\SanctumService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class SanctumController extends Controller
+{
+    public function __construct(protected SanctumService $sanctumService)
+    {
+    }
+    public function register(UserRegisterRequest $request)
+    {
+        $user = $this->sanctumService->register($request->validated());
+        return ApiResponse::success('The verification code has been sent to your email. Please check your email.');
+    }
+
+    public function verifyOTP(UserCheckCodeRequest $request)
+    {
+        $token = $this->sanctumService->verifyOTP($request->validated());
+        return ApiResponse::successWithData($token, 'Email verified successfully.');
+    }
+
+    public function reSendOTP(Request $request)
+    {
+        $validatedEmail = $request->validate(['email' => 'required|email|string']);
+        $this->sanctumService->reSendOTP($validatedEmail);
+        return ApiResponse::success('A new verification code has been sent to your email. Please check your email.');
+    }
+
+    public function login(UserLoginRequest $request)
+    {
+        $result = $this->sanctumService->login($request->validated());
+        return ApiResponse::successWithData(
+            [
+                'token' => $result['token'],
+                'user' => new SanctumResource($result['user'])
+            ],
+            'Login successfully.',
+            200
+        );
+    }
+
+    public function logout()
+    {
+        $this->sanctumService->logout(Auth::user());
+        return ApiResponse::success('Logout successfully.');
+    }
+
+    public function redirectToGoogle()
+    {
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+        return ApiResponse::successWithData(['url' => $url], 'Google OAuth URL generated.');
+    }
+
+    public function handleGoogleCallback()
+    {
+        $googleUser = Socialite::driver('google')->stateless()->user();
+        $result = $this->sanctumService->loginWithGoogle($googleUser);
+        return ApiResponse::successWithData([
+            'token' => $result['token'],
+            'user' => new SanctumResource($result['user'])
+        ], 'Login with Google successful.');
+    }
+
+}
