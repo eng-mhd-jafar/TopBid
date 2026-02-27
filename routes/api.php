@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\BidController;
 use App\Http\Controllers\Api\JwtAuthController;
 use App\Http\Controllers\Api\SanctumController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Services\BidService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,3 +42,5 @@ Route::controller(SanctumController::class)->group(function () {
 Route::post('/stripe/checkout', [PaymentController::class, 'checkout']);
 Route::post('/stripe/handleWebhook', [PaymentController::class, 'handleWebhook']);
 
+
+Route::Post('/bids', [BidController::class, 'store']);
