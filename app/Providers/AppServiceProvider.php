@@ -50,5 +50,7 @@ class AppServiceProvider extends ServiceProvider
                 : Limit::perMinute(5)->by($request->ip());
         });
 
+        \App\Models\Auction::observe(\App\Observers\AuctionObserver::class);
+
     }
 }

@@ -1,24 +1,41 @@
 <?php
-
 namespace App\Repositories;
 
 use App\Models\Auction;
-use App\Models\User;
+use App\DTOs\AuctionData;
 
 class AuctionRepository
 {
-    public function __construct(protected Auction $auction)
+
+    public function create(AuctionData $data, $endAt): Auction
     {
+        return Auction::create([
+            'title' => $data->title,
+            'description' => $data->description,
+            'category_id' => $data->categoryId,
+            'user_id' => $data->userId,
+            'starting_price' => $data->startingPrice,
+            'current_price' => $data->startingPrice,
+            'duration_hours' => $data->duration_hours,
+            'end_at' => $endAt,
+            'specs' => $data->specs,
+            'image_path' => $data->imagePath,
+            'is_active' => $data->isActive,
+            'moderation_status' => 'pending',
+        ]);
     }
 
-    public function findOrFail(int $id)
+    public function findById(int $id): ?Auction
     {
-        return $this->auction->where('id', $id)->lockForUpdate()->firstOrFail();
+        return Auction::findOrFail($id);
+    }
+    public function getActiveAuctions($perPage = 10)
+    {
+        return Auction::where('is_active', true)
+            ->where('moderation_status', 'approved')
+            ->where('end_at', '>', now())
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
 
-    public function update(Auction $auction, float $newPrice)
-    {
-        $auction->current_price = $newPrice;
-        $auction->save();
-    }
 }

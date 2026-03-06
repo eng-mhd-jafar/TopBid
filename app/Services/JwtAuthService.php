@@ -2,20 +2,30 @@
 
 namespace App\Services;
 
-use App\Core\Domain\Interfaces\JwtAuthRepositoryInterface;
+use App\Exceptions\RegistrationFailedException;
 use App\Models\User;
+use App\Repositories\JwtAuthRepository;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class JwtAuthService
 {
-    public function __construct(protected JwtAuthRepositoryInterface $jwtAuthRepository)
+    public function __construct(protected JwtAuthRepository $jwtAuthRepository)
     {
     }
     public function register(array $data): array
     {
-        $user = $this->jwtAuthRepository->create($data);
-        $token = auth('jwt')->login($user);
-
-        return $this->generateTokenResponse($token, $user);
+        try {
+            DB::beginTransaction();
+            $user = $this->jwtAuthRepository->create($data);
+            $token = auth('jwt')->login($user);
+            DB::commit();
+            return $this->generateTokenResponse($token, $user);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Registration failed: ' . $e->getMessage());
+            throw new RegistrationFailedException();
+        }
     }
 
     public function login(array $credentials): ?array
@@ -27,7 +37,6 @@ class JwtAuthService
         }
 
         $user = auth('jwt')->user();
-
         return $this->generateTokenResponse($token, $user);
     }
 

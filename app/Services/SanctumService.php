@@ -10,8 +10,6 @@ use App\Exceptions\RegistrationFailedException;
 use App\Exceptions\ResendOtpTooSoonException;
 use App\Exceptions\UserNotFoundException;
 use App\Jobs\SendOtpJob;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VerificationCodeEmail;
 use Illuminate\Support\Facades\DB;
 use Laravel\Socialite\Contracts\User as SocialiteUser;
 use Illuminate\Support\Facades\Log;

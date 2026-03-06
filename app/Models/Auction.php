@@ -7,28 +7,45 @@ use Illuminate\Database\Eloquent\Model;
 class Auction extends Model
 {
     protected $fillable = [
-        'product_id',
-        'seller_id',
+        'category_id',
+        'user_id',
+        'title',
+        'description',
+        'image_path',
+        'specs',
         'starting_price',
         'current_price',
-        'min_increment',
-        'start_time',
-        'end_time',
-        'status',
-    ];
+        'duration_hours',
+        'is_active',
+        'moderation_status',
+        'started_at',
+        'expires_at',
+        'end_at',
 
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
+    ];
 
     public function seller()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function bids()
     {
         return $this->hasMany(Bid::class);
+    }
+
+    protected $casts = [
+        'specs' => 'array',
+        'is_active' => 'boolean',
+        'started_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'end_at' => 'datetime',
+    ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)
+            ->where('moderation_status', 'approved')
+            ->where('end_at', '>', now());
     }
 }

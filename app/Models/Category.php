@@ -11,8 +11,9 @@ class Category extends Model
         'slug',
     ];
 
-    public function products()
+    public function auctions()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Auction::class);
     }
+    
 }
