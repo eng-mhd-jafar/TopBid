@@ -7,8 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\ApiResponse;
 use App\Http\Requests\StoreBidRequest;
 use App\Services\BidService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class BidController extends Controller
 {
@@ -27,9 +25,9 @@ class BidController extends Controller
                 (int) $validated['user_id']
             );
 
-            $bid = $this->bidService->placeBid($bidData);
+            $this->bidService->placeBid($bidData);
 
-            return ApiResponse::successWithData($bid, 'Bid placed and broadcasted!');
+            return ApiResponse::success('Bid placed and broadcasted!', 200);
 
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 422);

@@ -37,4 +37,9 @@ class AuctionRepository
             ->paginate($perPage);
     }
 
+    public function update(Auction $auction, float $newPrice): void
+    {
+        $auction->current_price = $newPrice;
+        $auction->save();
+    }
 }

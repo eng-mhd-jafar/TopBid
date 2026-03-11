@@ -16,7 +16,7 @@ class BidService
     public function placeBid(BidData $data)
     {
         $bid = DB::transaction(function () use ($data) {
-            $auction = $this->auctionRepository->findOrFail($data->auctionId);
+            $auction = $this->auctionRepository->findById($data->auctionId);
 
             if ($data->amount <= $auction->current_price) {
                 throw new Exception('Bid amount must be higher than current price.');
@@ -24,9 +24,12 @@ class BidService
 
             $newbid = $this->bidRepository->create($data);
             $this->auctionRepository->update($auction, $data->amount);
+
+            // لو فشل البث، سترمي دالة broadcast استثناء ويتم عمل rollback تلقائياً للترانزاكشن
+            broadcast(new BidPlaced($newbid));
+
             return $newbid;
         });
-        broadcast(new BidPlaced($bid));
         return $bid;
     }
 
