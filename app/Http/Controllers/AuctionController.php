@@ -5,6 +5,7 @@ use App\Http\Requests\StoreAuctionRequest;
 use App\Services\AuctionService;
 use App\DTOs\AuctionData;
 use App\Http\Helpers\ApiResponse;
+use App\Http\Resources\AuctionResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,7 +43,7 @@ class AuctionController extends Controller
         $perPage = $request->get('per_page', 10);
         $auctions = $this->auctionService->getActiveAuctions($perPage);
         return ApiResponse::successWithData(
-            data: $auctions,
+            data: AuctionResource::collection($auctions),
             message: 'Auctions retrieved successfully'
         );
     }
@@ -53,6 +54,9 @@ class AuctionController extends Controller
         if (!$auction) {
             return ApiResponse::error('Auction not found', 404);
         }
-        return ApiResponse::successWithData($auction, 'Auction retrieved successfully');
+        return ApiResponse::successWithData(
+            new AuctionResource($auction),
+            'Auction retrieved successfully'
+        );
     }
 }

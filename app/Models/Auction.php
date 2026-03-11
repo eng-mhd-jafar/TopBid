@@ -20,7 +20,6 @@ class Auction extends Model
         'moderation_status',
         'started_at',
         'expires_at',
-        'end_at',
 
     ];
 
@@ -39,13 +38,12 @@ class Auction extends Model
         'is_active' => 'boolean',
         'started_at' => 'datetime',
         'expires_at' => 'datetime',
-        'end_at' => 'datetime',
     ];
 
     public function scopeActive($query)
     {
         return $query->where('is_active', true)
             ->where('moderation_status', 'approved')
-            ->where('end_at', '>', now());
+            ->where('expires_at', '>', now());
     }
 }

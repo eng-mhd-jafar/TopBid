@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuctionModerationController;
 use App\Http\Controllers\BidController;
 use App\Http\Controllers\JwtAuthController;
 use App\Http\Controllers\SanctumController;
@@ -55,3 +56,8 @@ Route::group(['middleware' => 'auth:jwt'], function () {
 // category routes
 Route::post('/categories', [CategoryController::class, 'store']);
 
+// مسارات لوحة تحكم الأدمن
+Route::prefix('admin/auctions')->group(function () {
+    Route::post('{id}/approve', [AuctionModerationController::class, 'approve']);
+    Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
+});

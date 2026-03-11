@@ -34,7 +34,7 @@ class AuctionService
 
     public function getActiveAuctions(int $perPage = 10)
     {
-        // هنا يمكننا إضافة منطق إضافي مثل التخزين المؤقت (Caching) لاحقاً لزيادة السرعة       
+        // هنا يمكننا إضافة منطق إضافي مثل التخزين المؤقت (Caching) لاحقاً لزيادة السرعة
         try {
             $auctions = $this->auctionRepository->getActiveAuctions($perPage);
 

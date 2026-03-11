@@ -11,7 +11,6 @@ class AuctionData
         public int $userId,
         public float $startingPrice,
         public int $duration_hours,
-        public ?string $end_at = null, // أضفنا هذا الحقل
         public ?array $specs = null,
         public ?string $imagePath = null,
     ) {

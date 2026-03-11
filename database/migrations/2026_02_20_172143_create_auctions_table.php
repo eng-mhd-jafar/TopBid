@@ -30,8 +30,8 @@ return new class extends Migration {
             $table->enum('moderation_status', ['pending', 'approved', 'flagged'])->default('pending');
 
             // التوقيت (يتم ملؤهم عند التفعيل)
-            $table->timestamp('started_at')->nullable();
-            $table->timestamp('expires_at')->nullable();
+            $table->timestamp('started_at')->nullable()->index(); // وقت بدء المزاد
+            $table->timestamp('expires_at')->nullable()->index(); // وقت انتهاء المزاد
             $table->timestamps();
         });
     }

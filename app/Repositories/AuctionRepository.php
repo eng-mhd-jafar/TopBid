@@ -17,10 +17,9 @@ class AuctionRepository
             'starting_price' => $data->startingPrice,
             'current_price' => $data->startingPrice,
             'duration_hours' => $data->duration_hours,
-            'end_at' => $endAt,
+            'expires_at' => $endAt,
             'specs' => $data->specs,
             'image_path' => $data->imagePath,
-            'is_active' => $data->isActive,
             'moderation_status' => 'pending',
         ]);
     }
@@ -33,7 +32,7 @@ class AuctionRepository
     {
         return Auction::where('is_active', true)
             ->where('moderation_status', 'approved')
-            ->where('end_at', '>', now())
+            ->where('expires_at', '>', now())
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
