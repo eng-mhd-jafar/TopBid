@@ -17,17 +17,17 @@ class BidService
     {
         $bid = DB::transaction(function () use ($data) {
             $auction = $this->auctionRepository->findById($data->auctionId);
-
+            if ($auction->is_active == false) {
+                throw new Exception('Auction is closed.');
+            }
             if ($data->amount <= $auction->current_price) {
                 throw new Exception('Bid amount must be higher than current price.');
             }
-
             $newbid = $this->bidRepository->create($data);
             $this->auctionRepository->update($auction, $data->amount);
 
             // لو فشل البث، سترمي دالة broadcast استثناء ويتم عمل rollback تلقائياً للترانزاكشن
             broadcast(new BidPlaced($newbid));
-
             return $newbid;
         });
         return $bid;

@@ -26,7 +26,7 @@ class AuctionRepository
 
     public function findById(int $id): ?Auction
     {
-        return Auction::findOrFail($id);
+        return Auction::where('id', $id)->lockForUpdate()->first();
     }
     public function getActiveAuctions($perPage = 10)
     {
