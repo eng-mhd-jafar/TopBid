@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
@@ -71,5 +71,5 @@ class SanctumController extends Controller
             'user' => new SanctumResource($result['user'])
         ], 'Login with Google successful.');
     }
-
 }
+

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\User;
 
 use App\DTOs\BidData;
 use App\Http\Controllers\Controller;
@@ -30,3 +30,4 @@ class BidController extends Controller
         }
     }
 }
+

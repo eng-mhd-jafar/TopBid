@@ -1,5 +1,6 @@
 <?php
-namespace App\Http\Controllers;
+
+namespace App\Http\Controllers\Api\User;
 
 use App\Http\Requests\StoreAuctionRequest;
 use App\Services\AuctionService;
@@ -8,6 +9,7 @@ use App\Http\Helpers\ApiResponse;
 use App\Http\Resources\AuctionResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
 class AuctionController extends Controller
 {
@@ -27,7 +29,7 @@ class AuctionController extends Controller
             title: $validated['title'],
             description: $validated['description'],
             categoryId: (int) $validated['category_id'],
-            userId: (int) (Auth::id() ?? 1), // تجريبي
+            userId: (int) (Auth::id() ?? 1),
             startingPrice: (float) $validated['starting_price'],
             duration_hours: (int) $validated['duration_hours'],
             specs: $validated['specs'] ?? null,
@@ -60,3 +62,4 @@ class AuctionController extends Controller
         );
     }
 }
+

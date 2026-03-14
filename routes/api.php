@@ -1,12 +1,13 @@
 <?php
 
-use App\Http\Controllers\Admin\AuctionModerationController;
-use App\Http\Controllers\BidController;
-use App\Http\Controllers\JwtAuthController;
-use App\Http\Controllers\SanctumController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\AuctionController;
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\Api\Admin\AuctionModerationController;
+use App\Http\Controllers\Api\User\NotificationController;
+use App\Http\Controllers\Api\User\BidController;
+use App\Http\Controllers\Api\User\JwtAuthController;
+use App\Http\Controllers\Api\User\SanctumController;
+use App\Http\Controllers\Api\User\PaymentController;
+use App\Http\Controllers\Api\User\AuctionController;
+use App\Http\Controllers\Api\User\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,4 +61,10 @@ Route::post('/categories', [CategoryController::class, 'store']);
 Route::prefix('admin/auctions')->group(function () {
     Route::post('{id}/approve', [AuctionModerationController::class, 'approve']);
     Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
