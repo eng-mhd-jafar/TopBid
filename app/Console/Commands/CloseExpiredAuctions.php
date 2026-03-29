@@ -26,28 +26,29 @@ class CloseExpiredAuctions extends Command
      */
     public function handle()
     {
-        // 1. نجيب كل المزادات اللي انتهى وقتها ولسه مفتوحة
         $expiredAuctions = Auction::where('is_active', true)
             ->where('expires_at', '<=', now())
+            ->with([
+                'seller',
+                'bids' => function ($query) {
+                    $query->latest()->with('user');
+                }
+            ])
             ->get();
 
-        // 2. منمر على كل مزاد منتهي ومنسكره
         foreach ($expiredAuctions as $auction) {
             $auction->update(['is_active' => false]);
 
-            $winningBid = $auction->bids()->latest()->first();
+            $winningBid = $auction->bids->first();
 
             if ($winningBid) {
-                // حالة وجود فائز: نرسل الإشعار للفائز
                 $winner = $winningBid->user;
                 $winner->notify(new \App\Notifications\AuctionStatusNotification($auction, 'won'));
             } else {
-                // حالة عدم وجود مزايدات: نرسل الإشعار لصاحب المزاد (البائع)
                 $seller = $auction->seller;
                 $seller->notify(new \App\Notifications\AuctionStatusNotification($auction, 'expired_no_bids'));
             }
         }
-
-        $this->info("تم إغلاق " . count(value: $expiredAuctions) . " مزادات.");
+        $this->info("تم إغلاق " . $expiredAuctions->count() . " مزادات بنجاح.");
     }
 }

@@ -63,7 +63,7 @@ Route::prefix('admin/auctions')->group(function () {
     Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:jwt')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);

@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -71,5 +72,32 @@ class User extends Authenticatable implements JWTSubject
     public function bids()
     {
         return $this->hasMany(Bid::class);
+    }
+
+    public function devices()
+    {
+        return $this->hasMany(UserDevice::class);
+    }
+
+    public function updateDeviceToken(array $data): void
+    {
+        // 1. تنظيف: لو التوكن مسجل لمستخدم آخر، نحذفه منه (لأن الجهاز صار مع شخص جديد)
+        UserDevice::where('fcm_token', $data['fcm_token'])
+            ->where('user_id', '!=', $this->id)
+            ->delete();
+
+        // 2. تحديث أو إنشاء: نربط التوكن بالمستخدم الحالي
+        $this->devices()->updateOrCreate(
+            ['fcm_token' => $data['fcm_token']], // ابحث بهذا الشرط
+            [
+                'device_type' => $data['device_type'] ?? null,
+                'device_name' => $data['device_name'] ?? null,
+            ]
+        );
+    }
+    public function routeNotificationForFcm()
+    {
+        // جلب جميع قيم fcm_token من جدول الأجهزة المرتبط بالمستخدم
+        return $this->devices()->pluck('fcm_token')->toArray();
     }
 }

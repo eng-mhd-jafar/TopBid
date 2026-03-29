@@ -1,10 +1,13 @@
 <?php
+
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
+use NotificationChannels\Fcm\FcmChannel;
+use NotificationChannels\Fcm\FcmMessage;
+use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
 
 class AuctionStatusNotification extends Notification
 {
@@ -12,7 +15,6 @@ class AuctionStatusNotification extends Notification
 
     protected $auction;
     protected $status; // 'won' أو 'expired'
-
     public function __construct($auction, $status)
     {
         $this->auction = $auction;
@@ -21,7 +23,7 @@ class AuctionStatusNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'fcm'];
     }
 
     public function toArray($notifiable)
@@ -41,13 +43,27 @@ class AuctionStatusNotification extends Notification
     public function toBroadcast($notifiable)
     {
         $message = ($this->status === 'won')
-            ? "تهانينا! فزت بالمزاد 🎉"
-            : "للأسف، انتهى المزاد دون مشترين ⏳";
+            ? 'تهانينا! فزت بالمزاد 🎉'
+            : 'للأسف، انتهى المزاد دون مشترين ⏳';
 
         return new BroadcastMessage([
             'auction_id' => $this->auction->id,
             'message' => $message,
             'status' => $this->status,
         ]);
+    }
+
+    public function toFcm($notifiable): FcmMessage
+    {
+        return (new FcmMessage)
+            ->setNotification(new FcmNotification(
+                title: ($this->status === 'won') ? 'Congratulations! 🏆' : 'Auction Ended',
+                body: "The auction for {$this->auction->title} is now closed.",
+            ))
+            ->setData([
+                'auction_id' => (string) $this->auction->id,
+                'status' => $this->status,
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            ]);
     }
 }
