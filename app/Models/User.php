@@ -27,7 +27,11 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at',
         'verification_code_expires_at',
         'last_otp_at',
-        'failed_attempts'
+        'failed_attempts',
+        'avatar',
+        'address',
+        'city',
+        'bio',
     ];
 
     /**
@@ -66,12 +70,22 @@ class User extends Authenticatable implements JWTSubject
 
     public function auctions()
     {
-        return $this->hasMany(Auction::class, 'seller_id');
+        return $this->hasMany(Auction::class, 'user_id');
     }
 
     public function bids()
     {
         return $this->hasMany(Bid::class);
+    }
+
+    public function hasActiveActivity(): bool
+    {
+        $hasActiveAuctions = $this->auctions()->active()->exists();
+        $hasActiveBids = $this->bids()->whereHas('auction', function ($q) {
+            $q->active();
+        })->exists();
+
+    return $hasActiveAuctions || $hasActiveBids;
     }
 
     public function devices()
@@ -100,4 +114,5 @@ class User extends Authenticatable implements JWTSubject
         // جلب جميع قيم fcm_token من جدول الأجهزة المرتبط بالمستخدم
         return $this->devices()->pluck('fcm_token')->toArray();
     }
+
 }

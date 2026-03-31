@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AuctionModerationController;
+use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\BidController;
 use App\Http\Controllers\Api\User\JwtAuthController;
@@ -15,17 +16,28 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+
 // JWT Authentication Routes
-Route::prefix('jwt')->group(function () {
+Route::controller(JwtAuthController::class)->group(function () {
+    Route::post('/jwt/register', 'register');
+    Route::post('/jwt/login', 'login');
+    Route::group(['middleware' => 'auth:jwt'], function () {
+        Route::post('/jwt/logout', 'logout');
+        Route::post('/jwt/refresh', 'refresh');
+    });
+});
+Route::prefix('auth')->group(function () {
     Route::post('register', [JwtAuthController::class, 'register']);
     Route::post('login', [JwtAuthController::class, 'login']);
 
     Route::middleware('auth:jwt')->group(function () {
-        Route::get('me', [JwtAuthController::class, 'me']);
-        Route::post('logout', [JwtAuthController::class, 'logout']);
+        Route::delete('logout', [JwtAuthController::class, 'logout']);
         Route::post('refresh', [JwtAuthController::class, 'refresh']);
-        Route::get('AllUsers', [SanctumController::class, 'index']);
     });
+});
+
+Route::middleware('auth:jwt')->group(function () {
+    Route::get('users', [SanctumController::class, 'index']);
 });
 
 
@@ -57,14 +69,22 @@ Route::group(['middleware' => 'auth:jwt'], function () {
 // category routes
 Route::post('/categories', [CategoryController::class, 'store']);
 
-// مسارات لوحة تحكم الأدمن
+// admin auction moderation routes
 Route::prefix('admin/auctions')->group(function () {
     Route::post('{id}/approve', [AuctionModerationController::class, 'approve']);
     Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
 });
 
+// notifications routes
 Route::middleware('auth:jwt')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+});
+
+// profile routes
+Route::group(['middleware' => 'auth:jwt', 'prefix' => 'me'], function () {
+    Route::get('/', [ProfileController::class, 'show']);
+    Route::put('/', [ProfileController::class, 'update']);
+    Route::put('password', [ProfileController::class, 'changePassword']);
 });
