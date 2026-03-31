@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\JwtRegisterRequest;
 use App\Http\Requests\JwtLoginRequest;
-use App\Http\Resources\UserResource;
 use App\Http\Helpers\ApiResponse;
+use App\Http\Resources\RegisterResource;
 use App\Services\JwtAuthService;
 
 class JwtAuthController extends Controller
@@ -24,7 +24,7 @@ class JwtAuthController extends Controller
             'refresh_token' => $result['refresh_token'],
             'token_type' => $result['token_type'],
             'expires_in' => $result['expires_in'],
-            'user' => new UserResource($result['user'])
+            'user' => (new RegisterResource($result['user']))->resolve()
         ];
         return ApiResponse::successWithData($responseData, 'User registered successfully', 201);
     }
@@ -43,7 +43,7 @@ class JwtAuthController extends Controller
             'token_type' => $result['token_type'],
             'expires_in' => $result['expires_in'],
             'refresh_expires_in' => $result['refresh_expires_in'],
-            'user' => new UserResource($result['user'])
+            'user' => (new RegisterResource($result['user']))->resolve()
         ];
         return ApiResponse::successWithData($responseData, 'Login successfully');
     }
@@ -66,7 +66,7 @@ class JwtAuthController extends Controller
                 'token_type' => $result['token_type'],
                 'expires_in' => $result['expires_in'],
                 'refresh_expires_in' => $result['refresh_expires_in'],
-                'user' => new UserResource($result['user'])
+                'user' => (new RegisterResource($result['user']))->resolve()
             ];
             return ApiResponse::successWithData($responseData, 'Token refreshed successfully');
 

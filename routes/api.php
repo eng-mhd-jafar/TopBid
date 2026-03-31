@@ -17,19 +17,10 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-// JWT Authentication Routes
-Route::controller(JwtAuthController::class)->group(function () {
-    Route::post('/jwt/register', 'register');
-    Route::post('/jwt/login', 'login');
-    Route::group(['middleware' => 'auth:jwt'], function () {
-        Route::post('/jwt/logout', 'logout');
-        Route::post('/jwt/refresh', 'refresh');
-    });
-});
-Route::prefix('auth')->group(function () {
+Route::prefix('auth')->controller(JwtAuthController::class)->group(function () {
+
     Route::post('register', [JwtAuthController::class, 'register']);
     Route::post('login', [JwtAuthController::class, 'login']);
-
     Route::middleware('auth:jwt')->group(function () {
         Route::delete('logout', [JwtAuthController::class, 'logout']);
         Route::post('refresh', [JwtAuthController::class, 'refresh']);
@@ -42,15 +33,16 @@ Route::middleware('auth:jwt')->group(function () {
 
 
 // Sanctum Authentication Routes
-Route::controller(SanctumController::class)->group(function () {
-    Route::post('/register', 'register');
-    Route::post('/verify-OTP', 'verifyOTP')->middleware('throttle:otp-limiter');
-    Route::post('/resend-OTP', 'reSendOTP')->middleware('throttle:otp-limiter');
-    Route::post('/login', 'login');
-    Route::post('/logout', 'logout')->middleware('auth:sanctum');
-    Route::get('auth/google', 'redirectToGoogle');
-    Route::get('auth/google/callback', 'handleGoogleCallback');
-});
+// Route::controller(SanctumController::class)->group(function () {
+//     Route::post('/register', 'register');
+//     Route::post('/verify-OTP', 'verifyOTP')->middleware('throttle:otp-limiter');
+//     Route::post('/resend-OTP', 'reSendOTP')->middleware('throttle:otp-limiter');
+//     Route::post('/login', 'login');
+//     Route::post('/logout', 'logout')->middleware('auth:sanctum');
+//     Route::get('auth/google', 'redirectToGoogle');
+//     Route::get('auth/google/callback', 'handleGoogleCallback');
+// });
+
 
 // payment routes
 Route::post('/stripe/checkout', [PaymentController::class, 'checkout']);

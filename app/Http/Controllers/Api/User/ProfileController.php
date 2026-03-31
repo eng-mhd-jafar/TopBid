@@ -5,7 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\ApiResponse;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
-use App\Http\Resources\UserResource;
+use App\Http\Resources\ProfileResource;
 use App\Services\ProfileService;
 use Illuminate\Http\Request;
 
@@ -17,13 +17,13 @@ class ProfileController extends Controller
 
     public function show(Request $request)
     {
-        return new UserResource($request->user());
+        return new ProfileResource($request->user());
     }
 
     public function update(UpdateProfileRequest $request)
     {
         $user = $this->profileService->updateProfile($request->user(), $request->validated());
-        return ApiResponse::successWithData(new UserResource($user), 'Profile updated successfully');
+        return ApiResponse::successWithData((new ProfileResource($user))->resolve(), 'Profile updated successfully');
     }
 
     public function changePassword(ChangePasswordRequest $request)
