@@ -20,11 +20,13 @@ class AuctionResource extends JsonResource
             'description' => $this->description,
 
             'category' => [
-                'id' => $this->category_id,
+                'name' => $this->category?->name,
+
             ],
 
             'seller' => [
                 'id' => $this->user_id,
+                'name' => $this->user?->name,
             ],
 
             'image' => [

@@ -22,6 +22,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'jwt_token_version',
         'phone_number',
         'OTP',
         'email_verified_at',
@@ -65,7 +66,9 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'token_version' => (int) $this->jwt_token_version,
+        ];
     }
 
     public function auctions()

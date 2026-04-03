@@ -25,6 +25,9 @@ class JwtRegisterRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'bio' => ['nullable', 'string', 'max:1000'],
+            'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'phone_number' => ['required', 'string', 'max:20', 'unique:users,phone_number'],
         ];
     }
 
@@ -42,6 +45,11 @@ class JwtRegisterRequest extends FormRequest
             'password.required' => 'يرجى ادخال كلمة المرور',
             'password.min' => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف',
             'password.confirmed' => 'تأكيد كلمة المرور غير متطابق',
+            'bio.max' => 'النبذة التعريفية طويلة جداً',
+            'avatar.image' => 'الملف المرفوع يجب أن يكون صورة',
+            'avatar.mimes' => 'الصورة يجب أن تكون بصيغة jpg أو jpeg أو png',
+            'avatar.max' => 'حجم الصورة يجب ألا يتجاوز 2MB',
+            'phone_number.unique' => 'رقم الهاتف مستخدم مسبقاً',
         ];
     }
 }

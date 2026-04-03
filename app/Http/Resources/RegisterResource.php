@@ -11,6 +11,9 @@ class RegisterResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'phone_number' => $this->phone_number,
+            'bio' => $this->bio,
+            'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null,
             // عادةً يرجع التوكن مع الاستجابة بعد التسجيل
             'token' => $this->when(isset($this->token), $this->token),
         ];

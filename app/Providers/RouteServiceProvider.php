@@ -37,5 +37,35 @@ class RouteServiceProvider extends ServiceProvider
                 ], 429);
             });
         });
+
+        RateLimiter::for('auth-login', function (Request $request) {
+            $key = ($request->input('email') ?: 'guest') . '|' . $request->ip();
+            return Limit::perMinute(5)->by($key)->response(function (Request $request, array $headers) {
+                return ApiResponse::error([
+                    'message' => 'Too many login attempts. Try again later.',
+                    'retry_after_seconds' => $headers['Retry-After'] ?? null,
+                ], 429);
+            });
+        });
+
+        RateLimiter::for('auth-forgot-password', function (Request $request) {
+            $key = ($request->input('email') ?: 'guest') . '|' . $request->ip();
+            return Limit::perMinute(3)->by($key)->response(function (Request $request, array $headers) {
+                return ApiResponse::error([
+                    'message' => 'Too many requests. Try again later.',
+                    'retry_after_seconds' => $headers['Retry-After'] ?? null,
+                ], 429);
+            });
+        });
+
+        RateLimiter::for('auth-reset-password', function (Request $request) {
+            $key = ($request->input('email') ?: 'guest') . '|' . $request->ip();
+            return Limit::perMinute(5)->by($key)->response(function (Request $request, array $headers) {
+                return ApiResponse::error([
+                    'message' => 'Too many requests. Try again later.',
+                    'retry_after_seconds' => $headers['Retry-After'] ?? null,
+                ], 429);
+            });
+        });
     }
 }

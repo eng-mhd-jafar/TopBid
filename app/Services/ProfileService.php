@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 
+use App\Jobs\SendPasswordChangedEmailJob;
 use App\Repositories\UserRepository;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
@@ -44,7 +45,20 @@ class ProfileService
                 'old_password' => 'The provided password does not match our records.'
             ]);
         }
-        return $this->userRepo->update($user, ['password' => Hash::make($newPassword)]);
+        $updatedUser = $this->userRepo->update($user, [
+            'password' => Hash::make($newPassword),
+            'jwt_token_version' => (int) $user->jwt_token_version + 1,
+        ]);
+
+        // إبطال جميع الـ refresh tokens القديمة لهذا المستخدم
+        \App\Models\UserRefreshToken::query()
+            ->where('user_id', $user->id)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now()]);
+
+        SendPasswordChangedEmailJob::dispatch($updatedUser);
+
+        return $updatedUser;
     }
 
 }
