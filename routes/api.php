@@ -54,7 +54,10 @@ Route::post('/stripe/checkout', [PaymentController::class, 'checkout']);
 Route::post('/stripe/handleWebhook', [PaymentController::class, 'handleWebhook']);
 
 // bid routes
-Route::Post('/bids', [BidController::class, 'store']);
+Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
+    Route::get('/bids', [BidController::class, 'index']);
+    Route::post('/bids', [BidController::class, 'store']);
+});
 
 // auction routes
 Route::group(['middleware' => ['auth:jwt', 'jwt.token.version']], function () {
