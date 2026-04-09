@@ -22,7 +22,9 @@ use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class JwtAuthService
 {
-    public function __construct(protected JwtAuthRepository $jwtAuthRepository) {}
+    public function __construct(protected JwtAuthRepository $jwtAuthRepository)
+    {
+    }
 
     protected function issueTokensForUser(User $user): array
     {
@@ -75,7 +77,7 @@ class JwtAuthService
             if (isset($data['avatar']) && is_string($data['avatar'])) {
                 Storage::disk('public')->delete($data['avatar']);
             }
-            Log::error('Registration failed: '.$e->getMessage());
+            Log::error('Registration failed: ' . $e->getMessage());
             throw new RegistrationFailedException;
         }
     }
@@ -83,13 +85,13 @@ class JwtAuthService
     public function login(array $credentials): ?array
     {
         $user = $this->jwtAuthRepository->findUserByEmail($credentials['email']);
-        if (! $user || ! $user->email_verified_at) {
+        if (!$user || !$user->email_verified_at) {
             return null;
         }
 
         $token = JWTAuth::attempt($credentials);
 
-        if (! $token) {
+        if (!$token) {
             return null;
         }
 
@@ -101,7 +103,7 @@ class JwtAuthService
     public function verifyOtp(array $data): ?array
     {
         $user = $this->jwtAuthRepository->findUserByEmail($data['email']);
-        if (! $user) {
+        if (!$user) {
             return null;
         }
 
@@ -132,7 +134,7 @@ class JwtAuthService
     public function resendOtp(string $email): void
     {
         $user = $this->jwtAuthRepository->findUserByEmail($email);
-        if (! $user) {
+        if (!$user) {
             return;
         }
 
@@ -182,7 +184,7 @@ class JwtAuthService
             ->whereNull('revoked_at')
             ->first();
 
-        if (! $refreshRecord) {
+        if (!$refreshRecord) {
             return null;
         }
 
@@ -192,7 +194,7 @@ class JwtAuthService
 
         $user = $refreshRecord->user;
 
-        if (! $user || (int) $refreshRecord->jwt_token_version !== (int) $user->jwt_token_version) {
+        if (!$user || (int) $refreshRecord->jwt_token_version !== (int) $user->jwt_token_version) {
             return null;
         }
 
@@ -209,12 +211,12 @@ class JwtAuthService
         $user = $this->jwtAuthRepository->findUserByEmail($email);
 
         // Always return success response in controller to avoid account enumeration.
-        if (! $user) {
+        if (!$user) {
             return;
         }
 
         $rateLimitKey = "password-reset-requested:{$user->id}";
-        if (! Cache::add($rateLimitKey, true, now()->addSeconds(60))) {
+        if (!Cache::add($rateLimitKey, true, now()->addSeconds(60))) {
             return;
         }
 
