@@ -23,4 +23,4 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 bootstrap/cache/
-storage/framework/
+storage/framework/views/
