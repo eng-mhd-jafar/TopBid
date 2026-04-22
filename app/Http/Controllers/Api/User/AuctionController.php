@@ -2,19 +2,25 @@
 
 namespace App\Http\Controllers\Api\User;
 
-use App\Http\Requests\StoreAuctionRequest;
-use App\Services\AuctionService;
 use App\DTOs\AuctionData;
+use App\Http\Controllers\Controller;
 use App\Http\Helpers\ApiResponse;
+use App\Http\Requests\GetAuctionByCategoryRequest;
+use App\Http\Requests\StoreAuctionRequest;
 use App\Http\Resources\AuctionResource;
+use App\Services\AuctionService;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 
 class AuctionController extends Controller
 {
-    public function __construct(protected AuctionService $auctionService)
+    private $auctionService;
+
+    public function __construct(AuctionService $auctionService)
     {
+        $this->auctionService = $auctionService;
     }
 
     public function store(StoreAuctionRequest $request)
@@ -37,6 +43,7 @@ class AuctionController extends Controller
         );
 
         $this->auctionService->createAuction($auctionData);
+
         return ApiResponse::success('Auction created and pending review', 201);
     }
 
@@ -44,6 +51,7 @@ class AuctionController extends Controller
     {
         $perPage = $request->get('per_page', 10);
         $auctions = $this->auctionService->getActiveAuctions($perPage);
+
         return ApiResponse::successWithData(
             data: AuctionResource::collection($auctions),
             message: 'Auctions retrieved successfully'
@@ -53,13 +61,31 @@ class AuctionController extends Controller
     public function show($id)
     {
         $auction = $this->auctionService->getAuctionById($id);
-        if (!$auction) {
+        if (! $auction) {
             return ApiResponse::error('Auction not found', 404);
         }
+
         return ApiResponse::successWithData(
             new AuctionResource($auction),
             'Auction retrieved successfully'
         );
     }
-}
 
+    public function getAuctionsByCategory(GetAuctionByCategoryRequest $request)
+    {
+        $validated = $request->validated();
+        $perPage = $request->get('per_page', 10);
+        try {
+            $auctions = $this->auctionService->getAuctionsByCategory($validated['category_id'], $perPage);
+
+            return ApiResponse::successWithData(
+                AuctionResource::collection($auctions),
+                'Auctions by category retrieved successfully'
+            );
+        } catch (Exception $e) {
+            Log::error('Error fetching auctions by category: '.$e->getMessage());
+
+            return ApiResponse::error('Failed to load auctions. Please try again.', 500);
+        }
+    }
+}

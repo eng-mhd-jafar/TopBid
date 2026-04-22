@@ -9,9 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 class AuctionService
 {
-    public function __construct(
-        protected AuctionRepository $auctionRepository
-    ) {
+    private $auctionRepository;
+    public function __construct(AuctionRepository $auctionRepository)
+    {
+        $this->auctionRepository = $auctionRepository;
     }
     public function createAuction(AuctionData $data)
     {
@@ -60,4 +61,14 @@ class AuctionService
         }
     }
 
+    public function getAuctionsByCategory(int $categoryId, int $perPage = 10)
+    {
+        try {
+            $auctions = $this->auctionRepository->getAuctionsByCategory($categoryId, $perPage);
+            return $auctions;
+        } catch (Exception $e) {
+            Log::error("Error fetching auctions by category: " . $e->getMessage());
+            throw new Exception("Failed to load auctions. Please try again.");
+        }
+    }
 }

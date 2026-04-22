@@ -1,12 +1,14 @@
 <?php
+
 namespace App\Repositories;
 
-use App\Models\Auction;
 use App\DTOs\AuctionData;
+use App\Models\Auction;
+use Exception;
+use Illuminate\Support\Facades\Log;
 
 class AuctionRepository
 {
-
     public function create(AuctionData $data, $endAt): Auction
     {
         return Auction::create([
@@ -28,6 +30,7 @@ class AuctionRepository
     {
         return Auction::where('id', $id)->lockForUpdate()->first();
     }
+
     public function getActiveAuctions($perPage = 10)
     {
         return Auction::where('is_active', true)
@@ -41,5 +44,19 @@ class AuctionRepository
     {
         $auction->current_price = $newPrice;
         $auction->save();
+    }
+
+    public function getAuctionsByCategory($categoryId, $perPage = 10)
+    {
+        try {
+            $auctions = Auction::where('category_id', $categoryId)
+                ->active()
+                ->orderBy('created_at', 'desc')
+                ->paginate($perPage);
+            return $auctions;
+        } catch (Exception $e) {
+            Log::error('Error fetching auctions by category: '.$e->getMessage());
+            throw new Exception('Failed to load auctions. Please try again.');
+        }
     }
 }

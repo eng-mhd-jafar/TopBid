@@ -64,9 +64,11 @@ Route::group(['middleware' => ['auth:jwt', 'jwt.token.version']], function () {
     Route::post('/auctions', [AuctionController::class, 'store']);
     Route::get('/auctions/{id}', [AuctionController::class, 'show']);
 });
+Route::get('/auctions/category/{category_id}', [AuctionController::class, 'getAuctionsByCategory']);
 Route::get('/auctions', [AuctionController::class, 'index']);
 
 // category routes
+Route::get('/categories', [CategoryController::class, 'index']);
 Route::post('/categories', [CategoryController::class, 'store']);
 
 // admin auction moderation routes
