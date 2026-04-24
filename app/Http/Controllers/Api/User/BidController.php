@@ -21,7 +21,7 @@ class BidController extends Controller
             $bidData = new BidData(
                 (int) $validated['auction_id'],
                 (float) $validated['amount'],
-                (int) $validated['user_id']
+                (int) $request->user()->id
             );
             $this->bidService->placeBid($bidData);
             return ApiResponse::success('Bid placed and broadcasted!', 200);

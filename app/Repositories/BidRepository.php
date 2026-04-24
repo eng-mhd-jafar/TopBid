@@ -16,7 +16,7 @@ class BidRepository
         return Bid::create([
             'auction_id' => $data->auctionId,
             'amount' => $data->amount,
-            'user_id' => $data->userId
+            'user_id' => auth()->id(),
         ]);
     }
 
