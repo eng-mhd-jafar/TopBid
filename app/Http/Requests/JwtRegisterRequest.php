@@ -27,7 +27,10 @@ class JwtRegisterRequest extends FormRequest
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:100'],
             'phone_number' => ['required', 'string', 'max:20', 'unique:users,phone_number'],
+
         ];
     }
 

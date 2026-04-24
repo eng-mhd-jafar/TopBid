@@ -17,6 +17,9 @@ class BidService
     {
         $bid = DB::transaction(function () use ($data) {
             $auction = $this->auctionRepository->findById($data->auctionId);
+            if ($auction->seller_id == auth()->id()) {
+                throw new Exception('You cannot bid on your own auction.');
+            }
             if ($auction->is_active == false) {
                 throw new Exception('Auction is closed.');
             }
