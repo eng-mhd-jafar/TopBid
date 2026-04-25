@@ -6,6 +6,7 @@ use App\DTOs\AuctionData;
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\ApiResponse;
 use App\Http\Requests\GetAuctionByCategoryRequest;
+use App\Http\Requests\GetMyAuctionsRequest;
 use App\Http\Requests\StoreAuctionRequest;
 use App\Http\Resources\AuctionResource;
 use App\Services\AuctionService;
@@ -13,6 +14,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AuctionController extends Controller
 {
@@ -61,7 +63,7 @@ class AuctionController extends Controller
     public function show($id)
     {
         $auction = $this->auctionService->getAuctionById($id);
-        if (! $auction) {
+        if (!$auction) {
             return ApiResponse::error('Auction not found', 404);
         }
 
@@ -83,9 +85,19 @@ class AuctionController extends Controller
                 'Auctions by category retrieved successfully'
             );
         } catch (Exception $e) {
-            Log::error('Error fetching auctions by category: '.$e->getMessage());
+            Log::error('Error fetching auctions by category: ' . $e->getMessage());
 
             return ApiResponse::error('Failed to load auctions. Please try again.', 500);
         }
+    }
+
+    public function getMyAuctions(GetMyAuctionsRequest $request): AnonymousResourceCollection
+    {
+        $auctions = $this->auctionService->getUserAuctions(
+            auth()->id(),
+            $request->validated()
+        );
+
+        return AuctionResource::collection($auctions);
     }
 }

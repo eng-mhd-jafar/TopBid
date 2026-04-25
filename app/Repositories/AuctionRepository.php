@@ -6,6 +6,7 @@ use App\DTOs\AuctionData;
 use App\Models\Auction;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AuctionRepository
 {
@@ -33,7 +34,8 @@ class AuctionRepository
 
     public function getActiveAuctions($perPage = 10)
     {
-        return Auction::where('is_active', true)
+        return Auction::with(['user', 'category'])
+            ->where('is_active', true)
             ->where('moderation_status', 'approved')
             ->where('expires_at', '>', now())
             ->orderBy('created_at', 'desc')
@@ -55,8 +57,33 @@ class AuctionRepository
                 ->paginate($perPage);
             return $auctions;
         } catch (Exception $e) {
-            Log::error('Error fetching auctions by category: '.$e->getMessage());
+            Log::error('Error fetching auctions by category: ' . $e->getMessage());
             throw new Exception('Failed to load auctions. Please try again.');
         }
+    }
+
+    public function getByUserId(int $userId, ?string $status, int $perPage): LengthAwarePaginator
+    {
+        $query = Auction::where('user_id', $userId)
+            ->with(['category', 'user']) // Eager Loading للأداء
+            ->latest();
+
+        $query->when($status, function ($q) use ($status) {
+            return match ($status) {
+                'active' => $q->where('moderation_status', 'approved')
+                    ->where('is_active', true)
+                    ->where('expires_at', '>', now()),
+                'expired' => $q->where(function ($sub) {
+                        $sub->where('expires_at', '<=', now())
+                        ->orWhere('is_active', false);
+                    }),
+                'pending' => $q->where('moderation_status', 'pending'),
+                'approved' => $q->where('moderation_status', 'approved'),
+                'rejected' => $q->where('moderation_status', 'flagged'),
+                default => $q,
+            };
+        });
+
+        return $query->paginate($perPage);
     }
 }

@@ -25,7 +25,6 @@ class AuctionResource extends JsonResource
             ],
 
             'seller' => [
-                'id' => $this->user_id,
                 'name' => $this->user?->name,
             ],
 

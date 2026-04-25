@@ -2,10 +2,10 @@
 namespace App\Services;
 
 use App\DTOs\AuctionData;
-use App\Http\Helpers\ApiResponse;
 use App\Repositories\AuctionRepository;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AuctionService
 {
@@ -70,5 +70,16 @@ class AuctionService
             Log::error("Error fetching auctions by category: " . $e->getMessage());
             throw new Exception("Failed to load auctions. Please try again.");
         }
+    }
+
+
+    public function getUserAuctions(int $userId, array $filters): LengthAwarePaginator
+    {
+        $perPage = $filters['per_page'] ?? 10;
+
+        // إذا كانت الحالة فارغة (null)، اجعل القيمة الافتراضية 'active'
+        $statusFilter = $filters['status'] ?? 'active';
+
+        return $this->auctionRepository->getByUserId($userId, $statusFilter, $perPage);
     }
 }

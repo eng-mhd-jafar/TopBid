@@ -16,6 +16,18 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// Sanctum Authentication Routes
+// Route::controller(SanctumController::class)->group(function () {
+//     Route::post('/register', 'register');
+//     Route::post('/verify-OTP', 'verifyOTP')->middleware('throttle:otp-limiter');
+//     Route::post('/resend-OTP', 'reSendOTP')->middleware('throttle:otp-limiter');
+//     Route::post('/login', 'login');
+//     Route::post('/logout', 'logout')->middleware('auth:sanctum');
+//     Route::get('auth/google', 'redirectToGoogle');
+//     Route::get('auth/google/callback', 'handleGoogleCallback');
+// });
+
+
 
 Route::prefix('auth')->controller(JwtAuthController::class)->group(function () {
 
@@ -37,21 +49,10 @@ Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
 });
 
 
-// Sanctum Authentication Routes
-// Route::controller(SanctumController::class)->group(function () {
-//     Route::post('/register', 'register');
-//     Route::post('/verify-OTP', 'verifyOTP')->middleware('throttle:otp-limiter');
-//     Route::post('/resend-OTP', 'reSendOTP')->middleware('throttle:otp-limiter');
-//     Route::post('/login', 'login');
-//     Route::post('/logout', 'logout')->middleware('auth:sanctum');
-//     Route::get('auth/google', 'redirectToGoogle');
-//     Route::get('auth/google/callback', 'handleGoogleCallback');
-// });
-
-
 // payment routes
 Route::post('/stripe/checkout', [PaymentController::class, 'checkout']);
 Route::post('/stripe/handleWebhook', [PaymentController::class, 'handleWebhook']);
+
 
 // bid routes
 Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
@@ -59,17 +60,21 @@ Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
     Route::post('/bids', [BidController::class, 'store']);
 });
 
+
 // auction routes
 Route::group(['middleware' => ['auth:jwt', 'jwt.token.version']], function () {
     Route::post('/auctions', [AuctionController::class, 'store']);
     Route::get('/auctions/{id}', [AuctionController::class, 'show']);
+    Route::get('my-auctions', [AuctionController::class, 'getMyAuctions']);
 });
 Route::get('/auctions/category/{category_id}', [AuctionController::class, 'getAuctionsByCategory']);
 Route::get('/auctions', [AuctionController::class, 'index']);
 
+
 // category routes
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::post('/categories', [CategoryController::class, 'store']);
+
 
 // admin auction moderation routes
 Route::prefix('admin/auctions')->group(function () {
@@ -77,12 +82,14 @@ Route::prefix('admin/auctions')->group(function () {
     Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
 });
 
+
 // notifications routes
 Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
+
 
 // profile routes
 Route::group(['middleware' => ['auth:jwt', 'jwt.token.version'], 'prefix' => 'me'], function () {
