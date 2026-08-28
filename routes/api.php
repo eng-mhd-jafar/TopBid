@@ -8,25 +8,7 @@ use App\Http\Controllers\Api\User\DeviceController;
 use App\Http\Controllers\Api\User\JwtAuthController;
 use App\Http\Controllers\Api\User\AuctionController;
 use App\Http\Controllers\Api\User\CategoryController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
-
-// Sanctum Authentication Routes
-// Route::controller(SanctumController::class)->group(function () {
-//     Route::post('/register', 'register');
-//     Route::post('/verify-OTP', 'verifyOTP')->middleware('throttle:otp-limiter');
-//     Route::post('/resend-OTP', 'reSendOTP')->middleware('throttle:otp-limiter');
-//     Route::post('/login', 'login');
-//     Route::post('/logout', 'logout')->middleware('auth:sanctum');
-//     Route::get('auth/google', 'redirectToGoogle');
-//     Route::get('auth/google/callback', 'handleGoogleCallback');
-// });
-
-
 
 Route::prefix('auth')->controller(JwtAuthController::class)->group(function () {
 
