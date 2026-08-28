@@ -20,16 +20,18 @@ class AuctionResource extends JsonResource
             'description' => $this->description,
 
             'category' => [
+                'id' => $this->category?->id,
                 'name' => $this->category?->name,
-
             ],
 
             'seller' => [
+                'id' => $this->user?->id,
                 'name' => $this->user?->name,
             ],
 
             'image' => [
                 'path' => $this->image_path,
+                'url' => $this->image_path ? asset('storage/'.$this->image_path) : null,
             ],
 
             'specs' => $this->specs,

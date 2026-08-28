@@ -8,6 +8,7 @@ class ProfileResource extends JsonResource
     public function toArray($request): array
     {
         return [
+            'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
             'phone_number' => $this->phone_number,
@@ -15,7 +16,9 @@ class ProfileResource extends JsonResource
             'address' => $this->address,
             'city' => $this->city,
             'bio' => $this->bio,
-            'has_active_activity' => $this->hasActiveActivity() ? 'يوجد' : 'لا يوجد',
+            'is_admin' => (bool) $this->is_admin,
+            // قيمة منطقية لا نصاً مترجماً؛ الترجمة مسؤولية الواجهة
+            'has_active_activity' => $this->resource->hasActiveActivity(),
         ];
     }
 }

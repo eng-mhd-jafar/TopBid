@@ -7,9 +7,13 @@ use App\Models\User;
 
 class AuctionPolicy
 {
-    public function view(User $user, Auction $auction): bool
+    /**
+     * المستخدم اختياري لأن تفاصيل المزاد عامة: الزائر يرى المزاد الحي،
+     * والمالك وحده يرى مزاده في أي حالة أخرى.
+     */
+    public function view(?User $user, Auction $auction): bool
     {
-        if ($auction->user_id === $user->id) {
+        if ($user !== null && $auction->user_id === $user->id) {
             return true;
         }
 

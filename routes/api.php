@@ -38,11 +38,12 @@ Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
 // auction routes
 Route::group(['middleware' => ['auth:jwt', 'jwt.token.version']], function () {
     Route::post('/auctions', [AuctionController::class, 'store']);
-    Route::get('/auctions/{id}', [AuctionController::class, 'show']);
     Route::get('my-auctions', [AuctionController::class, 'getMyAuctions']);
 });
 Route::get('/auctions/category/{category_id}', [AuctionController::class, 'getAuctionsByCategory']);
 Route::get('/auctions', [AuctionController::class, 'index']);
+// عام: الزائر يرى المزاد الحي، والسياسة تمنعه مما عدا ذلك
+Route::get('/auctions/{id}', [AuctionController::class, 'show']);
 
 
 // category routes

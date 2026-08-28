@@ -63,7 +63,7 @@ class AuctionController extends Controller
 
     public function show(int $id)
     {
-        $auction = Auction::findOrFail($id);
+        $auction = Auction::with(['user', 'category'])->findOrFail($id);
         $this->authorize('view', $auction);
 
         return ApiResponse::successWithData(
