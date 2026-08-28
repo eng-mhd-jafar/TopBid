@@ -6,6 +6,7 @@ use App\Events\BidPlaced;
 use App\Repositories\AuctionRepository;
 use App\Repositories\BidRepository;
 use Exception;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class BidService
@@ -17,10 +18,16 @@ class BidService
     {
         $bid = DB::transaction(function () use ($data) {
             $auction = $this->auctionRepository->findById($data->auctionId);
-            if ($auction->seller_id == auth()->id()) {
+            if ($auction === null) {
+                throw new Exception('Auction not found.');
+            }
+            if ($auction->user_id === $data->userId) {
                 throw new Exception('You cannot bid on your own auction.');
             }
-            if ($auction->is_active == false) {
+            if ($auction->moderation_status !== 'approved' || ! $auction->is_active) {
+                throw new Exception('Auction is not open for bidding.');
+            }
+            if ($auction->expires_at === null || $auction->expires_at->isPast()) {
                 throw new Exception('Auction is closed.');
             }
             if ($data->amount <= $auction->current_price) {
@@ -36,5 +43,8 @@ class BidService
         return $bid;
     }
 
-
+    public function getUserBids(int $userId, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->bidRepository->getByUserId($userId, $perPage);
+    }
 }

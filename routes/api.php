@@ -4,9 +4,8 @@ use App\Http\Controllers\Api\Admin\AuctionModerationController;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\NotificationController;
 use App\Http\Controllers\Api\User\BidController;
+use App\Http\Controllers\Api\User\DeviceController;
 use App\Http\Controllers\Api\User\JwtAuthController;
-use App\Http\Controllers\Api\User\SanctumController;
-use App\Http\Controllers\Api\User\PaymentController;
 use App\Http\Controllers\Api\User\AuctionController;
 use App\Http\Controllers\Api\User\CategoryController;
 use Illuminate\Http\Request;
@@ -44,16 +43,6 @@ Route::prefix('auth')->controller(JwtAuthController::class)->group(function () {
     Route::post('refresh', [JwtAuthController::class, 'refresh']);
 });
 
-Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
-    Route::get('users', [SanctumController::class, 'index']);
-});
-
-
-// payment routes
-Route::post('/stripe/checkout', [PaymentController::class, 'checkout']);
-Route::post('/stripe/handleWebhook', [PaymentController::class, 'handleWebhook']);
-
-
 // bid routes
 Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
     Route::get('/bids', [BidController::class, 'index']);
@@ -73,13 +62,21 @@ Route::get('/auctions', [AuctionController::class, 'index']);
 
 // category routes
 Route::get('/categories', [CategoryController::class, 'index']);
-Route::post('/categories', [CategoryController::class, 'store']);
+Route::middleware(['auth:jwt', 'jwt.token.version', 'admin'])->group(function () {
+    Route::post('/categories', [CategoryController::class, 'store']);
+});
 
 
 // admin auction moderation routes
-Route::prefix('admin/auctions')->group(function () {
+Route::prefix('admin/auctions')->middleware(['auth:jwt', 'jwt.token.version', 'admin'])->group(function () {
     Route::post('{id}/approve', [AuctionModerationController::class, 'approve']);
     Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
+});
+
+
+// device token routes
+Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
+    Route::post('/devices', [DeviceController::class, 'saveToken']);
 });
 
 

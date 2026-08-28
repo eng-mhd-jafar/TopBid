@@ -29,9 +29,9 @@ class CloseExpiredAuctions extends Command
         $expiredAuctions = Auction::where('is_active', true)
             ->where('expires_at', '<=', now())
             ->with([
-                'seller',
+                'user',
                 'bids' => function ($query) {
-                    $query->latest()->with('user');
+                    $query->orderByDesc('amount')->with('user');
                 }
             ])
             ->get();
@@ -45,7 +45,7 @@ class CloseExpiredAuctions extends Command
                 $winner = $winningBid->user;
                 $winner->notify(new \App\Notifications\AuctionStatusNotification($auction, 'won'));
             } else {
-                $seller = $auction->seller;
+                $seller = $auction->user;
                 $seller->notify(new \App\Notifications\AuctionStatusNotification($auction, 'expired_no_bids'));
             }
         }

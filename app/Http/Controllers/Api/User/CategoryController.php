@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\ApiResponse;
+use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Services\CategoryService;
-use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -17,14 +17,9 @@ class CategoryController extends Controller
         $this->categoryService = $categoryService;
     }
 
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $request->validate([
-            '*' => 'required|array',
-            '*.name' => 'required|string|max:255',
-            '*.slug' => 'required|string|max:255|unique:categories,slug',
-        ]);
-        $this->categoryService->storeCategories($request->all());
+        $this->categoryService->storeCategories($request->validated());
 
         return ApiResponse::success('All categories created successfully');
     }

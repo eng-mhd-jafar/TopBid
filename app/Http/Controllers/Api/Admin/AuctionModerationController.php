@@ -11,6 +11,7 @@ class AuctionModerationController extends Controller
     public function approve(int $id)
     {
         $auction = Auction::findOrFail($id);
+        $this->authorize('moderate', $auction);
 
         $auction->update([
             'moderation_status' => 'approved',
@@ -23,9 +24,10 @@ class AuctionModerationController extends Controller
     public function reject(int $id)
     {
         $auction = Auction::findOrFail($id);
+        $this->authorize('moderate', $auction);
 
         $auction->update([
-            'moderation_status' => 'rejected',
+            'moderation_status' => 'flagged',
             'is_active' => false,
         ]);
 

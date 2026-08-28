@@ -6,6 +6,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class GetAuctionByCategoryRequest extends FormRequest
 {
+    /**
+     * category_id يصل كـ route parameter، و validationData() لا تتضمن باراميترات المسار.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge(['category_id' => $this->route('category_id')]);
+    }
+
     public function rules()
     {
         return [

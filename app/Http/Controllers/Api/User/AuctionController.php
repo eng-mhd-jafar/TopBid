@@ -9,12 +9,13 @@ use App\Http\Requests\GetAuctionByCategoryRequest;
 use App\Http\Requests\GetMyAuctionsRequest;
 use App\Http\Requests\StoreAuctionRequest;
 use App\Http\Resources\AuctionResource;
+use App\Models\Auction;
 use App\Services\AuctionService;
 use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AuctionController extends Controller
 {
@@ -37,7 +38,7 @@ class AuctionController extends Controller
             title: $validated['title'],
             description: $validated['description'],
             categoryId: (int) $validated['category_id'],
-            userId: (int) (Auth::id() ?? 1),
+            userId: (int) Auth::id(),
             startingPrice: (float) $validated['starting_price'],
             duration_hours: (int) $validated['duration_hours'],
             specs: $validated['specs'] ?? null,
@@ -55,17 +56,15 @@ class AuctionController extends Controller
         $auctions = $this->auctionService->getActiveAuctions($perPage);
 
         return ApiResponse::successWithData(
-            data: AuctionResource::collection($auctions),
+            data: AuctionResource::collection($auctions)->response()->getData(true),
             message: 'Auctions retrieved successfully'
         );
     }
 
-    public function show($id)
+    public function show(int $id)
     {
-        $auction = $this->auctionService->getAuctionById($id);
-        if (!$auction) {
-            return ApiResponse::error('Auction not found', 404);
-        }
+        $auction = Auction::findOrFail($id);
+        $this->authorize('view', $auction);
 
         return ApiResponse::successWithData(
             new AuctionResource($auction),
@@ -81,7 +80,7 @@ class AuctionController extends Controller
             $auctions = $this->auctionService->getAuctionsByCategory($validated['category_id'], $perPage);
 
             return ApiResponse::successWithData(
-                AuctionResource::collection($auctions),
+                AuctionResource::collection($auctions)->response()->getData(true),
                 'Auctions by category retrieved successfully'
             );
         } catch (Exception $e) {
@@ -91,13 +90,16 @@ class AuctionController extends Controller
         }
     }
 
-    public function getMyAuctions(GetMyAuctionsRequest $request): AnonymousResourceCollection
+    public function getMyAuctions(GetMyAuctionsRequest $request): JsonResponse
     {
         $auctions = $this->auctionService->getUserAuctions(
             auth()->id(),
             $request->validated()
         );
 
-        return AuctionResource::collection($auctions);
+        return ApiResponse::successWithData(
+            AuctionResource::collection($auctions)->response()->getData(true),
+            'Auctions retrieved successfully'
+        );
     }
 }

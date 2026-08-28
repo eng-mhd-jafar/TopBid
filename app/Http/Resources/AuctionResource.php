@@ -43,7 +43,8 @@ class AuctionResource extends JsonResource
 
             'status' => [
                 'is_active' => (bool) $this->is_active,
-                'moderation' => $this->moderation_status,
+                // التخزين يستخدم flagged بينما مفردات الـ API تستخدم rejected
+                'moderation' => $this->moderation_status === 'flagged' ? 'rejected' : $this->moderation_status,
             ],
 
             'times' => [

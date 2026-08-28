@@ -7,7 +7,7 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Http\Requests\UserCheckCodeRequest;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
-use App\Http\Resources\SanctumResource;
+use App\Http\Resources\RegisterResource;
 use App\Http\Helpers\ApiResponse;
 use App\Services\SanctumService;
 use Illuminate\Http\Request;
@@ -43,7 +43,7 @@ class SanctumController extends Controller
         return ApiResponse::successWithData(
             [
                 'token' => $result['token'],
-                'user' => new SanctumResource($result['user'])
+                'user' => new RegisterResource($result['user'])
             ],
             'Login successfully.',
             200
@@ -68,7 +68,7 @@ class SanctumController extends Controller
         $result = $this->sanctumService->loginWithGoogle($googleUser);
         return ApiResponse::successWithData([
             'token' => $result['token'],
-            'user' => new SanctumResource($result['user'])
+            'user' => new RegisterResource($result['user'])
         ], 'Login with Google successful.');
     }
 }

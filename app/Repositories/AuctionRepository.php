@@ -73,10 +73,11 @@ class AuctionRepository
                 'active' => $q->where('moderation_status', 'approved')
                     ->where('is_active', true)
                     ->where('expires_at', '>', now()),
-                'expired' => $q->where(function ($sub) {
-                        $sub->where('expires_at', '<=', now())
-                        ->orWhere('is_active', false);
-                    }),
+                // المزاد المنتهي هو الذي اعتُمد وبدأ فعلاً ثم انقضى وقته.
+                // الشرط على moderation_status ضروري لأن create يملأ expires_at
+                // حتى للمزاد قيد المراجعة، فبدونه يظهر المعلّق والمرفوض كمنتهيين.
+                'expired' => $q->where('moderation_status', 'approved')
+                    ->where('expires_at', '<=', now()),
                 'pending' => $q->where('moderation_status', 'pending'),
                 'approved' => $q->where('moderation_status', 'approved'),
                 'rejected' => $q->where('moderation_status', 'flagged'),

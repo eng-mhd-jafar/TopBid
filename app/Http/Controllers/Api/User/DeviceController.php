@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Helpers\ApiResponse;
 use App\Http\Requests\StoreDeviceTokenRequest;
 
 class DeviceController extends Controller
@@ -13,9 +14,6 @@ class DeviceController extends Controller
             $request->validated()
         );
 
-        return response()->json([
-            'message' => __('notifications.device_registered_successfully'),
-        ]);
+        return ApiResponse::success('Device registered successfully');
     }
-
 }

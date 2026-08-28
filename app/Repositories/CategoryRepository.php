@@ -6,9 +6,16 @@ use App\Models\Category;
 
 class CategoryRepository
 {
-    public function store($data)
+    public function store(array $data): bool
     {
-        return Category::insert($data);
+        $now = now();
+
+        return Category::insert(array_map(fn (array $row) => [
+            'name' => $row['name'],
+            'slug' => $row['slug'],
+            'created_at' => $now,
+            'updated_at' => $now,
+        ], $data));
     }
 
     public function index()
