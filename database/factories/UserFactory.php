@@ -29,6 +29,10 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // تُضبط صراحةً لتطابق قيم العمود الافتراضية، وإلا بقيت null
+            // على النموذج المُنشأ حديثاً قبل قراءته من قاعدة البيانات.
+            'is_admin' => false,
+            'jwt_token_version' => 0,
         ];
     }
 
@@ -39,6 +43,16 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an administrator.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
         ]);
     }
 }
