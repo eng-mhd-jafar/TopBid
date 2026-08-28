@@ -14,10 +14,31 @@ use App\Http\Requests\UserCheckCodeRequest;
 use App\Http\Resources\RegisterResource;
 use App\Services\JwtAuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Laravel\Socialite\Facades\Socialite;
+use Throwable;
 
 class JwtAuthController extends Controller
 {
     public function __construct(protected JwtAuthService $jwtAuthService) {}
+
+    /**
+     * حمولة الرموز الموحّدة التي ترجعها كل مسارات إصدار الجلسة.
+     *
+     * @param  array<string, mixed>  $result
+     * @return array<string, mixed>
+     */
+    private function tokenPayload(array $result): array
+    {
+        return [
+            'access_token' => $result['access_token'],
+            'refresh_token' => $result['refresh_token'],
+            'token_type' => $result['token_type'],
+            'expires_in' => $result['expires_in'],
+            'refresh_expires_in' => $result['refresh_expires_in'],
+            'user' => (new RegisterResource($result['user']))->resolve(),
+        ];
+    }
 
     public function register(JwtRegisterRequest $request)
     {
@@ -37,14 +58,7 @@ class JwtAuthController extends Controller
             return ApiResponse::unauthorized('Invalid credentials or account not verified.');
         }
 
-        $responseData = [
-            'access_token' => $result['access_token'],
-            'refresh_token' => $result['refresh_token'],
-            'token_type' => $result['token_type'],
-            'expires_in' => $result['expires_in'],
-            'refresh_expires_in' => $result['refresh_expires_in'],
-            'user' => (new RegisterResource($result['user']))->resolve(),
-        ];
+        $responseData = $this->tokenPayload($result);
 
         return ApiResponse::successWithData($responseData, 'Login successfully');
     }
@@ -57,14 +71,7 @@ class JwtAuthController extends Controller
             return ApiResponse::error('Invalid or expired OTP.', 422);
         }
 
-        $responseData = [
-            'access_token' => $result['access_token'],
-            'refresh_token' => $result['refresh_token'],
-            'token_type' => $result['token_type'],
-            'expires_in' => $result['expires_in'],
-            'refresh_expires_in' => $result['refresh_expires_in'],
-            'user' => (new RegisterResource($result['user']))->resolve(),
-        ];
+        $responseData = $this->tokenPayload($result);
 
         return ApiResponse::successWithData($responseData, 'Email verified successfully.');
     }
@@ -93,14 +100,7 @@ class JwtAuthController extends Controller
             return ApiResponse::unauthorized('Unable to refresh token');
         }
 
-        $responseData = [
-            'access_token' => $result['access_token'],
-            'refresh_token' => $result['refresh_token'],
-            'token_type' => $result['token_type'],
-            'expires_in' => $result['expires_in'],
-            'refresh_expires_in' => $result['refresh_expires_in'],
-            'user' => (new RegisterResource($result['user']))->resolve(),
-        ];
+        $responseData = $this->tokenPayload($result);
 
         return ApiResponse::successWithData($responseData, 'Token refreshed successfully');
     }
@@ -121,5 +121,34 @@ class JwtAuthController extends Controller
         }
 
         return ApiResponse::success('Password has been reset successfully.');
+    }
+
+    public function redirectToGoogle()
+    {
+        $url = Socialite::driver('google')->stateless()->redirect()->getTargetUrl();
+
+        return ApiResponse::successWithData(['url' => $url], 'Google OAuth URL generated.');
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->stateless()->user();
+        } catch (Throwable $e) {
+            Log::error('Google callback failed: '.$e->getMessage());
+
+            return ApiResponse::unauthorized('Google authentication failed.');
+        }
+
+        if (! $googleUser->getEmail()) {
+            return ApiResponse::unauthorized('Google account has no usable email address.');
+        }
+
+        $result = $this->jwtAuthService->loginWithGoogle($googleUser);
+
+        return ApiResponse::successWithData(
+            $this->tokenPayload($result),
+            'Login with Google successful.'
+        );
     }
 }

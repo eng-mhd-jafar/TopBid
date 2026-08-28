@@ -41,6 +41,9 @@ Route::prefix('auth')->controller(JwtAuthController::class)->group(function () {
     });
 
     Route::post('refresh', [JwtAuthController::class, 'refresh']);
+
+    Route::get('google', [JwtAuthController::class, 'redirectToGoogle']);
+    Route::get('google/callback', [JwtAuthController::class, 'handleGoogleCallback']);
 });
 
 // bid routes

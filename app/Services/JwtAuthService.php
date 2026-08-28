@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Contracts\User as SocialiteUser;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class JwtAuthService
@@ -155,6 +156,43 @@ class JwtAuthService
         ]);
 
         SendOtpJob::dispatch($user, (string) $otp);
+    }
+
+    /**
+     * دخول أو تسجيل عبر جوجل.
+     *
+     * جوجل تتحقق من ملكية البريد، فالحساب الجديد يُعتمد فوراً، والحساب القائم
+     * غير المفعّل يُعتمد أيضاً لأن التحقق تم بطريقة أقوى من رمز البريد.
+     */
+    public function loginWithGoogle(SocialiteUser $googleUser): array
+    {
+        $user = DB::transaction(function () use ($googleUser) {
+            $existing = $this->jwtAuthRepository->findUserByEmail($googleUser->getEmail());
+
+            if (! $existing) {
+                // كلمة سر عشوائية لأن العمود إلزامي؛ يصل المستخدم إليها
+                // عند الحاجة عبر مسار استعادة كلمة السر.
+                return $this->jwtAuthRepository->create([
+                    'name' => $googleUser->getName() ?: $googleUser->getNickname() ?: 'User',
+                    'email' => $googleUser->getEmail(),
+                    'password' => Str::random(40),
+                    'email_verified_at' => now(),
+                ]);
+            }
+
+            if (! $existing->email_verified_at) {
+                $existing->forceFill([
+                    'email_verified_at' => now(),
+                    'OTP' => null,
+                    'verification_code_expires_at' => null,
+                    'failed_attempts' => 0,
+                ])->save();
+            }
+
+            return $existing;
+        });
+
+        return $this->issueTokensForUser($user);
     }
 
     public function getCurrentUser(): ?User
