@@ -102,4 +102,17 @@ class AuctionController extends Controller
             'Auctions retrieved successfully'
         );
     }
+
+    public function getMyWins(Request $request): JsonResponse
+    {
+        $auctions = $this->auctionService->getUserWins(
+            (int) auth()->id(),
+            (int) $request->get('per_page', 10)
+        );
+
+        return ApiResponse::successWithData(
+            AuctionResource::collection($auctions)->response()->getData(true),
+            'Won auctions retrieved successfully'
+        );
+    }
 }

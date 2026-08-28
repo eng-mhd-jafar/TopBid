@@ -39,6 +39,7 @@ Route::middleware(['auth:jwt', 'jwt.token.version'])->group(function () {
 Route::group(['middleware' => ['auth:jwt', 'jwt.token.version']], function () {
     Route::post('/auctions', [AuctionController::class, 'store']);
     Route::get('my-auctions', [AuctionController::class, 'getMyAuctions']);
+    Route::get('my-wins', [AuctionController::class, 'getMyWins']);
 });
 Route::get('/auctions/category/{category_id}', [AuctionController::class, 'getAuctionsByCategory']);
 Route::get('/auctions', [AuctionController::class, 'index']);

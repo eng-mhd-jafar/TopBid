@@ -23,18 +23,21 @@ class Auction extends Model
     protected $fillable = [
         'category_id',
         'user_id',
+        'winner_id',
+        'winning_bid_id',
         'title',
         'description',
         'image_path',
         'specs',
         'starting_price',
         'current_price',
+        'final_price',
         'duration_hours',
         'is_active',
         'moderation_status',
         'started_at',
         'expires_at',
-
+        'closed_at',
     ];
 
     public function user()
@@ -57,7 +60,18 @@ class Auction extends Model
         'is_active' => 'boolean',
         'started_at' => 'datetime',
         'expires_at' => 'datetime',
+        'closed_at' => 'datetime',
     ];
+
+    public function winner()
+    {
+        return $this->belongsTo(User::class, 'winner_id');
+    }
+
+    public function winningBid()
+    {
+        return $this->belongsTo(Bid::class, 'winning_bid_id');
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -107,6 +121,12 @@ class Auction extends Model
     public function scopeRejected(Builder $query): Builder
     {
         return $query->where('moderation_status', self::STATUS_REJECTED);
+    }
+
+    /** المزادات التي أُغلقت لصالح هذا المستخدم */
+    public function scopeWonBy(Builder $query, int $userId): Builder
+    {
+        return $query->where('winner_id', $userId);
     }
 
     /*

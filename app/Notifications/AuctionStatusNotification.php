@@ -3,18 +3,32 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
-use NotificationChannels\Fcm\FcmChannel;
 use NotificationChannels\Fcm\FcmMessage;
 use NotificationChannels\Fcm\Resources\Notification as FcmNotification;
 
-class AuctionStatusNotification extends Notification
+/**
+ * ShouldQueue ضروري: بدونه يُستدعى فايربيز بشكل متزامن داخل الأمر المجدول،
+ * فيتوقف إغلاق دفعة كبيرة على عشرات الطلبات الشبكية المتتالية.
+ */
+class AuctionStatusNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    public const STATUS_WON = 'won';
+
+    public const STATUS_SOLD = 'sold';
+
+    public const STATUS_LOST = 'lost';
+
+    public const STATUS_EXPIRED_NO_BIDS = 'expired_no_bids';
+
     protected $auction;
-    protected $status; // 'won' أو 'expired'
+
+    protected $status;
+
     public function __construct($auction, $status)
     {
         $this->auction = $auction;
@@ -28,27 +42,21 @@ class AuctionStatusNotification extends Notification
 
     public function toArray($notifiable)
     {
-        // تخصيص الرسالة المخزنة في قاعدة البيانات
-        $message = ($this->status === 'won')
-            ? "مبروك! لقد فزت في مزاد: {$this->auction->title}"
-            : "انتهى وقت المزاد: {$this->auction->title} دون وجود مزايدات.";
-
         return [
             'auction_id' => $this->auction->id,
-            'message' => $message,
+            'message' => $this->message(),
             'status' => $this->status,
+            'final_price' => $this->auction->final_price !== null
+                ? (float) $this->auction->final_price
+                : null,
         ];
     }
 
     public function toBroadcast($notifiable)
     {
-        $message = ($this->status === 'won')
-            ? 'تهانينا! فزت بالمزاد 🎉'
-            : 'للأسف، انتهى المزاد دون مشترين ⏳';
-
         return new BroadcastMessage([
             'auction_id' => $this->auction->id,
-            'message' => $message,
+            'message' => $this->message(),
             'status' => $this->status,
         ]);
     }
@@ -57,13 +65,33 @@ class AuctionStatusNotification extends Notification
     {
         return (new FcmMessage)
             ->setNotification(new FcmNotification(
-                title: ($this->status === 'won') ? 'Congratulations! 🏆' : 'Auction Ended',
-                body: "The auction for {$this->auction->title} is now closed.",
+                title: $this->title(),
+                body: $this->message(),
             ))
             ->setData([
                 'auction_id' => (string) $this->auction->id,
                 'status' => $this->status,
                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
             ]);
+    }
+
+    private function message(): string
+    {
+        return match ($this->status) {
+            self::STATUS_WON => "مبروك! لقد فزت في مزاد: {$this->auction->title}",
+            self::STATUS_SOLD => "تم بيع مزادك: {$this->auction->title}",
+            self::STATUS_LOST => "انتهى مزاد: {$this->auction->title} وفاز به مزايد آخر.",
+            default => "انتهى وقت المزاد: {$this->auction->title} دون وجود مزايدات.",
+        };
+    }
+
+    private function title(): string
+    {
+        return match ($this->status) {
+            self::STATUS_WON => 'مبروك، لقد فزت 🏆',
+            self::STATUS_SOLD => 'تم بيع مزادك 🎉',
+            self::STATUS_LOST => 'انتهى المزاد',
+            default => 'انتهى المزاد دون مزايدات',
+        };
     }
 }

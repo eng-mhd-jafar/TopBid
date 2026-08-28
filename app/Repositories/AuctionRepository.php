@@ -67,6 +67,20 @@ class AuctionRepository
             ->with(['category', 'user']) // Eager Loading للأداء
             ->latest();
 
+        return $this->applyStatusFilter($query, $status)->paginate($perPage);
+    }
+
+    /** المزادات التي فاز بها المستخدم بعد إغلاقها */
+    public function getWonByUserId(int $userId, int $perPage): LengthAwarePaginator
+    {
+        return Auction::wonBy($userId)
+            ->with(['category', 'user', 'winningBid'])
+            ->orderByDesc('closed_at')
+            ->paginate($perPage);
+    }
+
+    private function applyStatusFilter($query, ?string $status)
+    {
         $query->when($status, fn ($q) => match ($status) {
             'active' => $q->live(),
             'expired' => $q->ended(),
@@ -76,6 +90,6 @@ class AuctionRepository
             default => $q,
         });
 
-        return $query->paginate($perPage);
+        return $query;
     }
 }

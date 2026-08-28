@@ -82,4 +82,9 @@ class AuctionService
 
         return $this->auctionRepository->getByUserId($userId, $statusFilter, $perPage);
     }
+
+    public function getUserWins(int $userId, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->auctionRepository->getWonByUserId($userId, $perPage);
+    }
 }

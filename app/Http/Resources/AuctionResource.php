@@ -52,6 +52,13 @@ class AuctionResource extends JsonResource
             'times' => [
                 'started_at' => optional($this->started_at)->toIso8601String(),
                 'expires_at' => optional($this->expires_at)->toIso8601String(),
+                'closed_at' => optional($this->closed_at)->toIso8601String(),
+            ],
+
+            // تُملأ عند إغلاق المزاد؛ winner_id يبقى null إن انتهى بلا مزايدات
+            'result' => [
+                'winner_id' => $this->winner_id,
+                'final_price' => $this->final_price !== null ? (float) $this->final_price : null,
             ],
         ];
     }

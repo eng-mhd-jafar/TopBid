@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Auction;
+use App\Notifications\AuctionStatusNotification;
 use Illuminate\Console\Command;
 
 class CloseExpiredAuctions extends Command
@@ -26,28 +27,57 @@ class CloseExpiredAuctions extends Command
      */
     public function handle()
     {
-        $expiredAuctions = Auction::awaitingClosure()
+        $closed = 0;
+
+        // chunkById لا chunk: الحلقة تعدّل is_active وهو أحد شروط الاستعلام،
+        // والترقيم بالمعرّف لا بالإزاحة يمنع تخطّي صفوف بسبب ذلك.
+        Auction::awaitingClosure()
             ->with([
                 'user',
-                'bids' => function ($query) {
-                    $query->orderByDesc('amount')->with('user');
-                }
+                'bids' => fn ($query) => $query->orderByDesc('amount')->with('user'),
             ])
-            ->get();
+            ->chunkById(100, function ($auctions) use (&$closed) {
+                foreach ($auctions as $auction) {
+                    $this->closeAuction($auction);
+                    $closed++;
+                }
+            });
 
-        foreach ($expiredAuctions as $auction) {
-            $auction->update(['is_active' => false]);
+        $this->info("تم إغلاق {$closed} مزادات بنجاح.");
 
-            $winningBid = $auction->bids->first();
+        return self::SUCCESS;
+    }
 
-            if ($winningBid) {
-                $winner = $winningBid->user;
-                $winner->notify(new \App\Notifications\AuctionStatusNotification($auction, 'won'));
-            } else {
-                $seller = $auction->user;
-                $seller->notify(new \App\Notifications\AuctionStatusNotification($auction, 'expired_no_bids'));
-            }
+    private function closeAuction(Auction $auction): void
+    {
+        $winningBid = $auction->bids->first();
+
+        $auction->forceFill([
+            'is_active' => false,
+            'closed_at' => now(),
+            'winner_id' => $winningBid?->user_id,
+            'winning_bid_id' => $winningBid?->id,
+            // يبقى null إن لم يُبَع، فلا سعر نهائي لمزاد بلا مزايدات
+            'final_price' => $winningBid?->amount,
+        ])->save();
+
+        if (! $winningBid) {
+            $auction->user->notify(new AuctionStatusNotification($auction, 'expired_no_bids'));
+
+            return;
         }
-        $this->info("تم إغلاق " . $expiredAuctions->count() . " مزادات بنجاح.");
+
+        $winningBid->user->notify(new AuctionStatusNotification($auction, 'won'));
+
+        // البائع لم يكن يُشعَر ببيع مزاده إطلاقاً
+        $auction->user->notify(new AuctionStatusNotification($auction, 'sold'));
+
+        // ولا كان الخاسرون يعلمون بانتهاء المزاد
+        $auction->bids
+            ->pluck('user')
+            ->filter()
+            ->unique('id')
+            ->reject(fn ($user) => $user->id === $winningBid->user_id)
+            ->each(fn ($user) => $user->notify(new AuctionStatusNotification($auction, 'lost')));
     }
 }
