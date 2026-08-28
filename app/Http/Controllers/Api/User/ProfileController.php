@@ -28,18 +28,14 @@ class ProfileController extends Controller
 
     public function changePassword(ChangePasswordRequest $request)
     {
+        // ValidationException تصعد إلى المعالج الموحّد الذي يخرجها
+        // بنفس شكل بقية أخطاء التحقق.
+        $this->profileService->changePassword(
+            $request->user(),
+            $request->old_password,
+            $request->password
+        );
 
-        try {
-            $this->profileService->changePassword(
-                $request->user(),
-                $request->old_password,
-                $request->password
-            );
-
-            return ApiResponse::success('Password updated successfully.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return ApiResponse::error($e->errors(), 422);
-        }
+        return ApiResponse::success('Password updated successfully.');
     }
 }

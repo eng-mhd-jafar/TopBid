@@ -51,12 +51,18 @@ class ApiResponse
      * @return \Illuminate\Http\JsonResponse
      */
 
-    public static function error($message = 'حدث خطأ أثناء تنفيذ العملية', $statusCode = 400)
+    public static function error($message = 'حدث خطأ أثناء تنفيذ العملية', $statusCode = 400, array $errors = [])
     {
-        return response()->json([
+        $response = [
             'success' => false,
-            'message' => $message
-        ], $statusCode);
+            'message' => $message,
+        ];
+
+        if ($errors !== []) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $statusCode);
     }
 
     /**
