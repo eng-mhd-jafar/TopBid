@@ -85,7 +85,7 @@ it('lists only approved, active and unexpired auctions', function () {
     Auction::factory()->approved()->create(['title' => 'Visible']);
     Auction::factory()->pending()->create(['title' => 'Pending']);
     Auction::factory()->expired()->create(['title' => 'Expired']);
-    Auction::factory()->flagged()->create(['title' => 'Flagged']);
+    Auction::factory()->rejected()->create(['title' => 'Flagged']);
 
     $response = $this->getJson('/api/auctions')->assertOk();
 
@@ -176,7 +176,7 @@ it('filters my auctions by status', function () {
     $user = User::factory()->create();
     Auction::factory()->approved()->create(['user_id' => $user->id]);
     Auction::factory()->pending()->create(['user_id' => $user->id]);
-    Auction::factory()->flagged()->create(['user_id' => $user->id]);
+    Auction::factory()->rejected()->create(['user_id' => $user->id]);
     Auction::factory()->expired()->create(['user_id' => $user->id]);
 
     $count = fn (string $status) => $this

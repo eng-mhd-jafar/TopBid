@@ -23,7 +23,7 @@ class AuctionRepository
             'expires_at' => $endAt,
             'specs' => $data->specs,
             'image_path' => $data->imagePath,
-            'moderation_status' => 'pending',
+            'moderation_status' => Auction::STATUS_PENDING,
         ]);
     }
 
@@ -35,10 +35,8 @@ class AuctionRepository
     public function getActiveAuctions($perPage = 10)
     {
         return Auction::with(['user', 'category'])
-            ->where('is_active', true)
-            ->where('moderation_status', 'approved')
-            ->where('expires_at', '>', now())
-            ->orderBy('created_at', 'desc')
+            ->live()
+            ->latest()
             ->paginate($perPage);
     }
 
@@ -51,9 +49,10 @@ class AuctionRepository
     public function getAuctionsByCategory($categoryId, $perPage = 10)
     {
         try {
-            $auctions = Auction::where('category_id', $categoryId)
-                ->active()
-                ->orderBy('created_at', 'desc')
+            $auctions = Auction::with(['user', 'category'])
+                ->where('category_id', $categoryId)
+                ->live()
+                ->latest()
                 ->paginate($perPage);
             return $auctions;
         } catch (Exception $e) {
@@ -68,21 +67,13 @@ class AuctionRepository
             ->with(['category', 'user']) // Eager Loading للأداء
             ->latest();
 
-        $query->when($status, function ($q) use ($status) {
-            return match ($status) {
-                'active' => $q->where('moderation_status', 'approved')
-                    ->where('is_active', true)
-                    ->where('expires_at', '>', now()),
-                // المزاد المنتهي هو الذي اعتُمد وبدأ فعلاً ثم انقضى وقته.
-                // الشرط على moderation_status ضروري لأن create يملأ expires_at
-                // حتى للمزاد قيد المراجعة، فبدونه يظهر المعلّق والمرفوض كمنتهيين.
-                'expired' => $q->where('moderation_status', 'approved')
-                    ->where('expires_at', '<=', now()),
-                'pending' => $q->where('moderation_status', 'pending'),
-                'approved' => $q->where('moderation_status', 'approved'),
-                'rejected' => $q->where('moderation_status', 'flagged'),
-                default => $q,
-            };
+        $query->when($status, fn ($q) => match ($status) {
+            'active' => $q->live(),
+            'expired' => $q->ended(),
+            'pending' => $q->pendingReview(),
+            'approved' => $q->approved(),
+            'rejected' => $q->rejected(),
+            default => $q,
         });
 
         return $query->paginate($perPage);

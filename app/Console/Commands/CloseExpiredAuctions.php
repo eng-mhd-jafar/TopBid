@@ -26,8 +26,7 @@ class CloseExpiredAuctions extends Command
      */
     public function handle()
     {
-        $expiredAuctions = Auction::where('is_active', true)
-            ->where('expires_at', '<=', now())
+        $expiredAuctions = Auction::awaitingClosure()
             ->with([
                 'user',
                 'bids' => function ($query) {

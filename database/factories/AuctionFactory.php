@@ -34,7 +34,7 @@ class AuctionFactory extends Factory
             'current_price' => $startingPrice,
             'duration_hours' => 24,
             'is_active' => false,
-            'moderation_status' => 'pending',
+            'moderation_status' => Auction::STATUS_PENDING,
             'started_at' => null,
             'expires_at' => null,
         ];
@@ -43,7 +43,7 @@ class AuctionFactory extends Factory
     public function pending(): static
     {
         return $this->state(fn () => [
-            'moderation_status' => 'pending',
+            'moderation_status' => Auction::STATUS_PENDING,
             'is_active' => false,
             'started_at' => null,
             'expires_at' => null,
@@ -59,17 +59,17 @@ class AuctionFactory extends Factory
     public function approved(): static
     {
         return $this->state(fn (array $attributes) => [
-            'moderation_status' => 'approved',
+            'moderation_status' => Auction::STATUS_APPROVED,
             'is_active' => true,
             'started_at' => now(),
             'expires_at' => now()->addHours($attributes['duration_hours'] ?? 24),
         ]);
     }
 
-    public function flagged(): static
+    public function rejected(): static
     {
         return $this->state(fn () => [
-            'moderation_status' => 'flagged',
+            'moderation_status' => Auction::STATUS_REJECTED,
             'is_active' => false,
         ]);
     }
@@ -80,7 +80,7 @@ class AuctionFactory extends Factory
     public function expired(): static
     {
         return $this->state(fn (array $attributes) => [
-            'moderation_status' => 'approved',
+            'moderation_status' => Auction::STATUS_APPROVED,
             'is_active' => true,
             'started_at' => now()->subHours(($attributes['duration_hours'] ?? 24) + 1),
             'expires_at' => now()->subHour(),

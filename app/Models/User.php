@@ -85,9 +85,9 @@ class User extends Authenticatable implements JWTSubject
 
     public function hasActiveActivity(): bool
     {
-        $hasActiveAuctions = $this->auctions()->active()->exists();
+        $hasActiveAuctions = $this->auctions()->live()->exists();
         $hasActiveBids = $this->bids()->whereHas('auction', function ($q) {
-            $q->active();
+            $q->live();
         })->exists();
 
     return $hasActiveAuctions || $hasActiveBids;

@@ -24,10 +24,10 @@ class BidService
             if ($auction->user_id === $data->userId) {
                 throw new Exception('You cannot bid on your own auction.');
             }
-            if ($auction->moderation_status !== 'approved' || ! $auction->is_active) {
+            if (! $auction->isApproved() || ! $auction->is_active) {
                 throw new Exception('Auction is not open for bidding.');
             }
-            if ($auction->expires_at === null || $auction->expires_at->isPast()) {
+            if ($auction->hasEnded()) {
                 throw new Exception('Auction is closed.');
             }
             if ($data->amount <= $auction->current_price) {

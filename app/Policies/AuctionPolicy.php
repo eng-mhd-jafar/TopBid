@@ -13,10 +13,7 @@ class AuctionPolicy
             return true;
         }
 
-        return $auction->moderation_status === 'approved'
-            && $auction->is_active
-            && $auction->expires_at !== null
-            && $auction->expires_at->isFuture();
+        return $auction->isLive();
     }
 
     public function bid(User $user, Auction $auction): bool
@@ -25,10 +22,7 @@ class AuctionPolicy
             return false;
         }
 
-        return $auction->moderation_status === 'approved'
-            && $auction->is_active
-            && $auction->expires_at !== null
-            && $auction->expires_at->isFuture();
+        return $auction->isLive();
     }
 
     public function moderate(User $user, Auction $auction): bool

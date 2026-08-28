@@ -2,12 +2,23 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Auction extends Model
 {
     use HasFactory;
+
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_APPROVED = 'approved';
+
+    /**
+     * التخزين يستخدم flagged بينما مفردات الـ API تستخدم rejected.
+     * هذا الثابت هو المكان الوحيد الذي يجب أن يعرف هذا الفرق.
+     */
+    public const STATUS_REJECTED = 'flagged';
 
     protected $fillable = [
         'category_id',
@@ -48,10 +59,83 @@ class Auction extends Model
         'expires_at' => 'datetime',
     ];
 
-    public function scopeActive($query)
+    /*
+    |--------------------------------------------------------------------------
+    | نطاقات الحالة
+    |--------------------------------------------------------------------------
+    |
+    | حالة المزاد مشتقة من ثلاثة أعمدة معاً. تُعرَّف هنا مرة واحدة فقط،
+    | ولا يجوز لأي استعلام أن يعيد تركيب هذه الشروط بنفسه.
+    |
+    */
+
+    /** معتمد ونشط ولم ينته وقته بعد */
+    public function scopeLive(Builder $query): Builder
+    {
+        return $query->where('moderation_status', self::STATUS_APPROVED)
+            ->where('is_active', true)
+            ->where('expires_at', '>', now());
+    }
+
+    /** معتمد وانقضى وقته، سواء أغلقه المجدول أم لم يصل إليه بعد */
+    public function scopeEnded(Builder $query): Builder
+    {
+        return $query->where('moderation_status', self::STATUS_APPROVED)
+            ->where('expires_at', '<=', now());
+    }
+
+    /**
+     * ما ينتظر أمر الإغلاق: ما زال مُعلَّماً كنشط لكن وقته انتهى.
+     * يتعمّد عدم اشتراط الاعتماد، فأي مزاد نشط منتهٍ يجب أن يُغلق.
+     */
+    public function scopeAwaitingClosure(Builder $query): Builder
     {
         return $query->where('is_active', true)
-            ->where('moderation_status', 'approved')
-            ->where('expires_at', '>', now());
+            ->where('expires_at', '<=', now());
+    }
+
+    public function scopePendingReview(Builder $query): Builder
+    {
+        return $query->where('moderation_status', self::STATUS_PENDING);
+    }
+
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('moderation_status', self::STATUS_APPROVED);
+    }
+
+    public function scopeRejected(Builder $query): Builder
+    {
+        return $query->where('moderation_status', self::STATUS_REJECTED);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | مسنِدات الحالة
+    |--------------------------------------------------------------------------
+    |
+    | نفس التعريف أعلاه لكن على نسخة محمَّلة، لتستهلكها السياسات والخدمات
+    | بدل مقارنة النصوص يدوياً.
+    |
+    */
+
+    public function isApproved(): bool
+    {
+        return $this->moderation_status === self::STATUS_APPROVED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->moderation_status === self::STATUS_REJECTED;
+    }
+
+    public function hasEnded(): bool
+    {
+        return $this->expires_at === null || $this->expires_at->isPast();
+    }
+
+    public function isLive(): bool
+    {
+        return $this->isApproved() && $this->is_active && ! $this->hasEnded();
     }
 }

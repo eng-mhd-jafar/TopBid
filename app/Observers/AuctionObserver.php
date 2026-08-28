@@ -20,7 +20,7 @@ class AuctionObserver
     public function updated(Auction $auction)
     {
         // إذا تغيرت الحالة إلى approved وكانت سابقاً pending
-        if ($auction->wasChanged('moderation_status') && $auction->moderation_status === 'approved') {
+        if ($auction->wasChanged('moderation_status') && $auction->isApproved()) {
 
             // منع التكرار: نحدث البيانات فقط إذا لم يكن قد بدأ فعلياً
             if (!$auction->started_at) {

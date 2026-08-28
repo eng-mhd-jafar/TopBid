@@ -14,7 +14,7 @@ class AuctionModerationController extends Controller
         $this->authorize('moderate', $auction);
 
         $auction->update([
-            'moderation_status' => 'approved',
+            'moderation_status' => Auction::STATUS_APPROVED,
             'is_active' => true,
         ]);
 
@@ -27,7 +27,7 @@ class AuctionModerationController extends Controller
         $this->authorize('moderate', $auction);
 
         $auction->update([
-            'moderation_status' => 'flagged',
+            'moderation_status' => Auction::STATUS_REJECTED,
             'is_active' => false,
         ]);
 
