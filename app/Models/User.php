@@ -22,6 +22,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'is_admin',
         'jwt_token_version',
         'phone_number',
         'OTP',
@@ -56,6 +57,7 @@ class User extends Authenticatable implements JWTSubject
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_otp_at' => 'datetime',
+            'is_admin' => 'boolean',
         ];
     }
 

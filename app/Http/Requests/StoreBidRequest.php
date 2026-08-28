@@ -2,16 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Auction;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBidRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        $auction = Auction::find($this->input('auction_id'));
+
+        return $auction !== null && $this->user()?->can('bid', $auction) === true;
     }
 
     /**
