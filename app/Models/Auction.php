@@ -35,6 +35,7 @@ class Auction extends Model
         'duration_hours',
         'is_active',
         'moderation_status',
+        'rejection_reason',
         'started_at',
         'expires_at',
         'closed_at',

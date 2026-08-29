@@ -79,6 +79,24 @@ class AuctionRepository
             ->paginate($perPage);
     }
 
+    /** قائمة الإشراف: كل المزادات ما لم يُحدَّد فلتر، مع بحث بالعنوان وفلترة بالتصنيف */
+    public function getForModeration(array $filters, int $perPage): LengthAwarePaginator
+    {
+        $query = Auction::with(['category', 'user'])->latest();
+
+        $this->applyStatusFilter($query, $filters['status'] ?? null);
+
+        if (! empty($filters['search'])) {
+            $query->where('title', 'like', '%'.$filters['search'].'%');
+        }
+
+        if (! empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        return $query->paginate($perPage);
+    }
+
     private function applyStatusFilter($query, ?string $status)
     {
         $query->when($status, fn ($q) => match ($status) {

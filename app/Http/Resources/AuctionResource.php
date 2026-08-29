@@ -47,6 +47,7 @@ class AuctionResource extends JsonResource
                 'is_active' => (bool) $this->is_active,
                 // التخزين يستخدم flagged بينما مفردات الـ API تستخدم rejected
                 'moderation' => $this->resource->isRejected() ? 'rejected' : $this->moderation_status,
+                'rejection_reason' => $this->rejection_reason,
             ],
 
             'times' => [

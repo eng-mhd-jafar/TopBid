@@ -54,10 +54,13 @@ Route::middleware(['auth:jwt', 'jwt.token.version', 'admin'])->group(function ()
 });
 
 
-// admin auction moderation routes
-Route::prefix('admin/auctions')->middleware(['auth:jwt', 'jwt.token.version', 'admin'])->group(function () {
-    Route::post('{id}/approve', [AuctionModerationController::class, 'approve']);
-    Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
+// admin routes
+Route::prefix('admin')->middleware(['auth:jwt', 'jwt.token.version', 'admin'])->group(function () {
+    Route::prefix('auctions')->group(function () {
+        Route::get('/', [AuctionModerationController::class, 'index']);
+        Route::post('{id}/approve', [AuctionModerationController::class, 'approve']);
+        Route::post('{id}/reject', [AuctionModerationController::class, 'reject']);
+    });
 });
 
 

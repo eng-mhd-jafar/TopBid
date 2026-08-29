@@ -87,4 +87,11 @@ class AuctionService
     {
         return $this->auctionRepository->getWonByUserId($userId, $perPage);
     }
+
+    public function getAuctionsForModeration(array $filters): LengthAwarePaginator
+    {
+        $perPage = $filters['per_page'] ?? 10;
+
+        return $this->auctionRepository->getForModeration($filters, $perPage);
+    }
 }

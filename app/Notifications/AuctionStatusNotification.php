@@ -25,14 +25,21 @@ class AuctionStatusNotification extends Notification implements ShouldQueue
 
     public const STATUS_EXPIRED_NO_BIDS = 'expired_no_bids';
 
+    public const STATUS_AUCTION_APPROVED = 'auction_approved';
+
+    public const STATUS_AUCTION_REJECTED = 'auction_rejected';
+
     protected $auction;
 
     protected $status;
 
-    public function __construct($auction, $status)
+    protected $reason;
+
+    public function __construct($auction, $status, ?string $reason = null)
     {
         $this->auction = $auction;
         $this->status = $status;
+        $this->reason = $reason;
     }
 
     public function via($notifiable)
@@ -46,6 +53,7 @@ class AuctionStatusNotification extends Notification implements ShouldQueue
             'auction_id' => $this->auction->id,
             'message' => $this->message(),
             'status' => $this->status,
+            'reason' => $this->reason,
             'final_price' => $this->auction->final_price !== null
                 ? (float) $this->auction->final_price
                 : null,
@@ -81,6 +89,10 @@ class AuctionStatusNotification extends Notification implements ShouldQueue
             self::STATUS_WON => "مبروك! لقد فزت في مزاد: {$this->auction->title}",
             self::STATUS_SOLD => "تم بيع مزادك: {$this->auction->title}",
             self::STATUS_LOST => "انتهى مزاد: {$this->auction->title} وفاز به مزايد آخر.",
+            self::STATUS_AUCTION_APPROVED => "تمت الموافقة على مزادك: {$this->auction->title}، وبدأ العد التنازلي الآن.",
+            self::STATUS_AUCTION_REJECTED => $this->reason
+                ? "تم رفض مزادك: {$this->auction->title}. السبب: {$this->reason}"
+                : "تم رفض مزادك: {$this->auction->title}.",
             default => "انتهى وقت المزاد: {$this->auction->title} دون وجود مزايدات.",
         };
     }
@@ -91,6 +103,8 @@ class AuctionStatusNotification extends Notification implements ShouldQueue
             self::STATUS_WON => 'مبروك، لقد فزت 🏆',
             self::STATUS_SOLD => 'تم بيع مزادك 🎉',
             self::STATUS_LOST => 'انتهى المزاد',
+            self::STATUS_AUCTION_APPROVED => 'تمت الموافقة على مزادك ✅',
+            self::STATUS_AUCTION_REJECTED => 'تم رفض مزادك',
             default => 'انتهى المزاد دون مزايدات',
         };
     }
