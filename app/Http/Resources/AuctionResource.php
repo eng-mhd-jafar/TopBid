@@ -43,6 +43,13 @@ class AuctionResource extends JsonResource
 
             'duration_hours' => $this->duration_hours,
 
+            // تظهر فقط عندما يحمّلها الاستعلام، عبر scopeWithListingData
+            'bids_count' => $this->whenCounted('bids'),
+            'highest_bidder_id' => $this->whenLoaded(
+                'highestBid',
+                fn () => $this->highestBid?->user_id
+            ),
+
             'status' => [
                 'is_active' => (bool) $this->is_active,
                 // التخزين يستخدم flagged بينما مفردات الـ API تستخدم rejected

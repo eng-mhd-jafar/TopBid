@@ -48,6 +48,7 @@ Route::get('/auctions/category/{category_id}', [AuctionController::class, 'getAu
 Route::get('/auctions', [AuctionController::class, 'index']);
 // عام: الزائر يرى المزاد الحي، والسياسة تمنعه مما عدا ذلك
 Route::get('/auctions/{id}', [AuctionController::class, 'show']);
+Route::get('/auctions/{id}/bids', [BidController::class, 'forAuction']);
 
 
 // category routes

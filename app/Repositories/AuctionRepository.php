@@ -34,7 +34,7 @@ class AuctionRepository
 
     public function getActiveAuctions($perPage = 10)
     {
-        return Auction::with(['user', 'category'])
+        return Auction::withListingData()
             ->live()
             ->latest()
             ->paginate($perPage);
@@ -49,7 +49,7 @@ class AuctionRepository
     public function getAuctionsByCategory($categoryId, $perPage = 10)
     {
         try {
-            $auctions = Auction::with(['user', 'category'])
+            $auctions = Auction::withListingData()
                 ->where('category_id', $categoryId)
                 ->live()
                 ->latest()
@@ -64,7 +64,7 @@ class AuctionRepository
     public function getByUserId(int $userId, ?string $status, int $perPage): LengthAwarePaginator
     {
         $query = Auction::where('user_id', $userId)
-            ->with(['category', 'user']) // Eager Loading للأداء
+            ->withListingData()
             ->latest();
 
         return $this->applyStatusFilter($query, $status)->paginate($perPage);
@@ -74,7 +74,7 @@ class AuctionRepository
     public function getWonByUserId(int $userId, int $perPage): LengthAwarePaginator
     {
         return Auction::wonBy($userId)
-            ->with(['category', 'user', 'winningBid'])
+            ->withListingData()->with('winningBid')
             ->orderByDesc('closed_at')
             ->paginate($perPage);
     }
@@ -82,7 +82,7 @@ class AuctionRepository
     /** قائمة الإشراف: كل المزادات ما لم يُحدَّد فلتر، مع بحث بالعنوان وفلترة بالتصنيف */
     public function getForModeration(array $filters, int $perPage): LengthAwarePaginator
     {
-        $query = Auction::with(['category', 'user'])->latest();
+        $query = Auction::withListingData()->latest();
 
         $this->applyStatusFilter($query, $filters['status'] ?? null);
 

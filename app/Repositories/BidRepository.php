@@ -24,4 +24,23 @@ class BidRepository
             ->latest()
             ->paginate($perPage);
     }
+
+    /** سجل مزايدات مزاد واحد، الأعلى أولاً */
+    public function getByAuctionId(int $auctionId, int $perPage): LengthAwarePaginator
+    {
+        return Bid::where('auction_id', $auctionId)
+            ->with('user')
+            ->orderByDesc('amount')
+            ->orderByDesc('id')
+            ->paginate($perPage);
+    }
+
+    /** أعلى مزايدة قائمة على المزاد، تُقرأ قبل تسجيل مزايدة جديدة */
+    public function findHighestForAuction(int $auctionId): ?Bid
+    {
+        return Bid::where('auction_id', $auctionId)
+            ->orderByDesc('amount')
+            ->orderByDesc('id')
+            ->first();
+    }
 }

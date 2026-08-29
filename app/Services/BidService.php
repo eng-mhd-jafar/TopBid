@@ -47,4 +47,9 @@ class BidService
     {
         return $this->bidRepository->getByUserId($userId, $perPage);
     }
+
+    public function getAuctionBids(int $auctionId, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->bidRepository->getByAuctionId($auctionId, $perPage);
+    }
 }

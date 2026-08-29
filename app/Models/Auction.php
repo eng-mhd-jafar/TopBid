@@ -64,6 +64,20 @@ class Auction extends Model
         'closed_at' => 'datetime',
     ];
 
+    /**
+     * أعلى مزايدة على المزاد.
+     *
+     * المعرّف يكسر التعادل: مزايدتان بنفس المبلغ تجعلان MAX(amount) وحده
+     * غير حاسم، فتُرجَع الأحدث منهما.
+     */
+    public function highestBid()
+    {
+        return $this->hasOne(Bid::class)->ofMany([
+            'amount' => 'max',
+            'id' => 'max',
+        ]);
+    }
+
     public function winner()
     {
         return $this->belongsTo(User::class, 'winner_id');
@@ -128,6 +142,17 @@ class Auction extends Model
     public function scopeWonBy(Builder $query, int $userId): Builder
     {
         return $query->where('winner_id', $userId);
+    }
+
+    /**
+     * كل ما يحتاجه AuctionResource لعرض مزاد كاملاً.
+     *
+     * يُعرَّف هنا مرة واحدة حتى لا ينسى أي استعلام تحميل علاقة فينتج
+     * استعلامات N+1 أو حقول ناقصة تختلف من نقطة نهاية لأخرى.
+     */
+    public function scopeWithListingData(Builder $query): Builder
+    {
+        return $query->with(['user', 'category', 'highestBid'])->withCount('bids');
     }
 
     /*
