@@ -6,6 +6,7 @@ use App\DTOs\AuctionData;
 use App\Http\Controllers\Controller;
 use App\Http\Helpers\ApiResponse;
 use App\Http\Requests\GetAuctionByCategoryRequest;
+use App\Http\Requests\GetAuctionsRequest;
 use App\Http\Requests\GetMyAuctionsRequest;
 use App\Http\Requests\StoreAuctionRequest;
 use App\Http\Resources\AuctionResource;
@@ -50,10 +51,9 @@ class AuctionController extends Controller
         return ApiResponse::success('Auction created and pending review', 201);
     }
 
-    public function index(Request $request)
+    public function index(GetAuctionsRequest $request)
     {
-        $perPage = $request->get('per_page', 10);
-        $auctions = $this->auctionService->getActiveAuctions($perPage);
+        $auctions = $this->auctionService->getActiveAuctions($request->validated());
 
         return ApiResponse::successWithData(
             data: AuctionResource::collection($auctions)->response()->getData(true),

@@ -33,13 +33,13 @@ class AuctionService
         }
     }
 
-    public function getActiveAuctions(int $perPage = 10)
+    public function getActiveAuctions(array $filters = [])
     {
         // هنا يمكننا إضافة منطق إضافي مثل التخزين المؤقت (Caching) لاحقاً لزيادة السرعة
         try {
-            $auctions = $this->auctionRepository->getActiveAuctions($perPage);
+            $perPage = (int) ($filters['per_page'] ?? 10);
 
-            return $auctions;
+            return $this->auctionRepository->getActiveAuctions($filters, $perPage);
         } catch (Exception $e) {
             Log::error("Error fetching active auctions: " . $e->getMessage());
             throw new Exception("Failed to load auctions. Please try again.");

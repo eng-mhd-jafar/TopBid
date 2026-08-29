@@ -32,12 +32,28 @@ class AuctionRepository
         return Auction::where('id', $id)->lockForUpdate()->first();
     }
 
-    public function getActiveAuctions($perPage = 10)
+    public function getActiveAuctions(array $filters = [], int $perPage = 10)
     {
-        return Auction::withListingData()
-            ->live()
-            ->latest()
-            ->paginate($perPage);
+        $query = Auction::withListingData()->live();
+
+        if (! empty($filters['search'])) {
+            $query->where('title', 'like', '%'.$filters['search'].'%');
+        }
+
+        if (! empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        // isset لا empty: السعر صفر قيمة صالحة يجب ألا تُهمَل
+        if (isset($filters['min_price'])) {
+            $query->where('current_price', '>=', $filters['min_price']);
+        }
+
+        if (isset($filters['max_price'])) {
+            $query->where('current_price', '<=', $filters['max_price']);
+        }
+
+        return $query->sorted($filters['sort'] ?? null)->paginate($perPage);
     }
 
     public function update(Auction $auction, float $newPrice): void

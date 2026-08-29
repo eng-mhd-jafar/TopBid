@@ -145,6 +145,24 @@ class Auction extends Model
     }
 
     /**
+     * ترتيب قائمة المزادات.
+     *
+     * المعرّف يُضاف دائماً كمعيار ثانٍ: بدونه تتساوى صفوف في عمود الترتيب
+     * فيصير توزيعها على الصفحات غير مستقر، وقد يتكرر صف أو يسقط بين صفحتين.
+     *
+     * ending_soon مخصّص للقوائم الحية حيث expires_at مضمون غير فارغ.
+     */
+    public function scopeSorted(Builder $query, ?string $sort): Builder
+    {
+        return match ($sort) {
+            'ending_soon' => $query->orderBy('expires_at')->orderBy('id'),
+            'price_asc' => $query->orderBy('current_price')->orderBy('id'),
+            'price_desc' => $query->orderByDesc('current_price')->orderByDesc('id'),
+            default => $query->latest()->orderByDesc('id'),
+        };
+    }
+
+    /**
      * كل ما يحتاجه AuctionResource لعرض مزاد كاملاً.
      *
      * يُعرَّف هنا مرة واحدة حتى لا ينسى أي استعلام تحميل علاقة فينتج
