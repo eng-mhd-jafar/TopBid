@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\AdminStatsController;
+use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuctionModerationController;
 use App\Http\Controllers\Api\User\ProfileController;
 use App\Http\Controllers\Api\User\NotificationController;
@@ -64,6 +65,12 @@ Route::prefix('admin')->middleware(['auth:jwt', 'jwt.token.version', 'admin'])->
     });
 
     Route::get('stats', [AdminStatsController::class, 'index']);
+
+    Route::prefix('users')->group(function () {
+        Route::get('/', [AdminUserController::class, 'index']);
+        Route::get('{id}', [AdminUserController::class, 'show']);
+        Route::patch('{id}/admin', [AdminUserController::class, 'updateAdmin']);
+    });
 });
 
 
