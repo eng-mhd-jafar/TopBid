@@ -18,7 +18,9 @@ class BidPlaced implements ShouldBroadcast
      */
     public function __construct(public Bid $bid)
     {
-        //
+        // البث يحتاج اسم المزايد، وتحميلها هنا يمنع استعلاماً كسولاً
+        // أثناء التسلسل خارج سياق الطلب.
+        $this->bid->loadMissing('user');
     }
 
     /**
@@ -37,9 +39,15 @@ class BidPlaced implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
+            'bid_id' => $this->bid->id,
             'auction_id' => $this->bid->auction_id,
-            'amount' => $this->bid->amount,
+            'amount' => (float) $this->bid->amount,
+            'bidder' => [
+                'id' => $this->bid->user?->id,
+                'name' => $this->bid->user?->name,
+            ],
             'time' => $this->bid->created_at->format('H:i:s'),
+            'created_at' => $this->bid->created_at->toIso8601String(),
         ];
     }
 

@@ -58,6 +58,23 @@ expect()->extend('toBeOne', function () {
  *
  * @return array<string, string>
  */
+/**
+ * يستبدل قناة fcm بقناة صامتة.
+ *
+ * تحتاجه أي اختبار يرسل إشعاراً حقيقياً بدل Notification::fake، لأن القناة
+ * الحقيقية تتصل بفايربيز فترمي "Driver [fcm] not supported" في بيئة الاختبار.
+ * القناتان database و broadcast تبقيان حقيقيتين، والثانية على السائق null.
+ */
+function stubFcmChannel(): void
+{
+    Illuminate\Support\Facades\Notification::extend('fcm', fn () => new class
+    {
+        public function send($notifiable, $notification): void
+        {
+        }
+    });
+}
+
 function jwtHeaders(App\Models\User $user): array
 {
     app('auth')->forgetGuards();

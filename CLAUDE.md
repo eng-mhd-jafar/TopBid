@@ -147,6 +147,11 @@ without that reset a second request authenticates as the first user. Note the
 - Factory states: `pending()`, `approved()`, `rejected()`, `expired()`. The
   `approved()` state sets its own timing because `AuctionObserver` only listens
   to `updated`, so a factory-created approved auction never passes through it.
+- A test that sends a **real** notification (rather than `Notification::fake()`,
+  e.g. to assert the database row reaches the notifications feed) must call
+  `stubFcmChannel()` first. The real `fcm` channel dials Firebase and throws
+  `Driver [fcm] not supported` in the test environment. The helper leaves the
+  `database` and `broadcast` channels genuine.
 - `UploadedFile::fake()->image()` needs the GD extension, which is not
   installed here. Use `->create('x.jpg', 100, 'image/jpeg')`.
 - JSON encodes `500.0` as `500`; cast before asserting float equality.
@@ -172,6 +177,11 @@ without that reset a second request authenticates as the first user. Note the
   winner.
 - **`chunkById`, not `chunk`, in the closing command.** The loop mutates
   `is_active`, which the query filters on; offset-based chunking skips rows.
+- **A notification failure must never fail the action that triggered it.**
+  `BidService` sends the outbid notice after the transaction closes and
+  swallows any throw, because a Firebase outage previously surfaced as a 422
+  on a bid that had in fact been recorded. Apply the same shape to any new
+  side-effect notification.
 
 ## Git
 
