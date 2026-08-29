@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AdminCategoryController;
 use App\Http\Controllers\Api\Admin\AdminStatsController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\AuctionModerationController;
@@ -70,6 +71,12 @@ Route::prefix('admin')->middleware(['auth:jwt', 'jwt.token.version', 'admin'])->
         Route::get('/', [AdminUserController::class, 'index']);
         Route::get('{id}', [AdminUserController::class, 'show']);
         Route::patch('{id}/admin', [AdminUserController::class, 'updateAdmin']);
+    });
+
+    Route::prefix('categories')->group(function () {
+        Route::post('/', [AdminCategoryController::class, 'store']);
+        Route::put('{id}', [AdminCategoryController::class, 'update']);
+        Route::delete('{id}', [AdminCategoryController::class, 'destroy']);
     });
 });
 

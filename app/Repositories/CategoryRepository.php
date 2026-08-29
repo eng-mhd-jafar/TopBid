@@ -22,4 +22,31 @@ class CategoryRepository
     {
         return Category::all();
     }
+
+    public function findOrFail(int $id): Category
+    {
+        return Category::findOrFail($id);
+    }
+
+    public function createSingle(array $data): Category
+    {
+        return Category::create($data);
+    }
+
+    public function updateSingle(Category $category, array $data): Category
+    {
+        $category->update($data);
+
+        return $category;
+    }
+
+    public function hasAuctions(Category $category): bool
+    {
+        return $category->auctions()->exists();
+    }
+
+    public function delete(Category $category): void
+    {
+        $category->delete();
+    }
 }
